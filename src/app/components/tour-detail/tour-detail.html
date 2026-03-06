@@ -1,0 +1,36 @@
+@if (!tour()) {
+	<p>Select a tour from the list</p>
+} @else {
+	<section class="tour-detail">
+		<h2>{{ tour()!.name }}</h2>
+
+		<div class="detail-row">
+			<div class="detail-item">
+				<span class="detail-label">From</span>
+				<span>{{ tour()!.from }}</span>
+			</div>
+			<div class="detail-item">
+				<span class="detail-label">To</span>
+				<span>{{ tour()!.to }}</span>
+			</div>
+			<div class="detail-item">
+				<span class="detail-label">Distance (km)</span>
+				<span>{{ tour()!.distanceKm }}</span>
+			</div>
+			<div class="detail-item">
+				<span class="detail-label">Estimated Time (min)</span>
+				<span>{{ tour()!.estimatedTimeMin }}</span>
+			</div>
+			<div class="detail-item">
+				<span class="detail-label">Transport Type</span>
+				<span>{{ tour()!.transportType }}</span>
+			</div>
+		</div>
+
+		<p class="tour-description">{{ tour()!.description }}</p>
+
+		<div class="map-placeholder">
+			<span>Map will be displayed here</span>
+		</div>
+	</section>
+}
