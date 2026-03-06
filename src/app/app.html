@@ -1,6 +1,27 @@
-<!-- App root template -->
+<header class="top-bar">
+	<div class="top-bar-left">Tourplanner</div>
 
-<h1>Tourplanner</h1>
+	<div class="top-bar-center">
+		<input type="text" placeholder="Search..." disabled />
+	</div>
 
+	<div class="top-bar-right">
+		<button type="button" disabled>Import</button>
+		<button type="button" disabled>Export</button>
+	</div>
+</header>
 
-<router-outlet />
+<div class="layout-wrapper">
+	<aside class="sidebar">
+		<div class="sidebar-header">
+			<h2>My Tours</h2>
+			<button type="button" disabled>+</button>
+		</div>
+
+		<app-tour-list (tourSelected)="onTourSelected($event)"></app-tour-list>
+	</aside>
+
+	<main class="main-content">
+		<app-tour-detail [tour]="selectedTour()"></app-tour-detail>
+	</main>
+</div>

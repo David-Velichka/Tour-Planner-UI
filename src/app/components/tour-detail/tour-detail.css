@@ -1,0 +1,40 @@
+.tour-detail {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.tour-detail h2 {
+	margin: 0;
+}
+
+.detail-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1rem;
+}
+
+.detail-item {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+	min-width: 120px;
+}
+
+.detail-label {
+	font-weight: 700;
+}
+
+.tour-description {
+	margin: 0;
+}
+
+.map-placeholder {
+	align-items: center;
+	background-color: #e3e3e3;
+	border: 2px dashed #b5b5b5;
+	display: flex;
+	height: 300px;
+	justify-content: center;
+	width: 100%;
+}

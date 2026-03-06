@@ -1,0 +1,5 @@
+@for (tour of tours; track tour.id) {
+	<button type="button" class="tour-item" (click)="selectTour(tour)">
+		{{ tour.name }}
+	</button>
+}
