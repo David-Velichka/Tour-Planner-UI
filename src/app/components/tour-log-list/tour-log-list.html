@@ -1,0 +1,32 @@
+<section class="tour-logs">
+  <h3>Tour Logs</h3>
+
+  @if (filteredLogs().length === 0) {
+    <p>No logs recorded for this tour.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Difficulty</th>
+          <th>Total Distance</th>
+          <th>Total Time</th>
+          <th>Rating</th>
+          <th>Comment</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (log of filteredLogs(); track log.id) {
+          <tr>
+            <td>{{ log.loggedAt }}</td>
+            <td>{{ log.difficulty }}</td>
+            <td>{{ log.totalDistanceKm }} km</td>
+            <td>{{ log.totalTimeMin }} min</td>
+            <td>{{ log.rating }}</td>
+            <td>{{ log.comment }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>
