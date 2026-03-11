@@ -5,27 +5,11 @@
 		<h2>{{ tour()!.name }}</h2>
 
 		<div class="detail-row">
-			<div class="detail-item">
-				<span class="detail-label">From</span>
-				<span>{{ tour()!.from }}</span>
-			</div>
-			<div class="detail-item">
-				<span class="detail-label">To</span>
-				<span>{{ tour()!.to }}</span>
-			</div>
-			<div class="detail-item">
-				<span class="detail-label">Distance (km)</span>
-				<span>{{ tour()!.distanceKm }}</span>
-			</div>
-			<div class="detail-item">
-				<span class="detail-label">Estimated Time (min)</span>
-				<span>{{ tour()!.estimatedTimeMin }}</span>
-			</div>
-			
-			<div class="detail-item">
-				<span class="detail-label">Transport Type</span>
-				<span>{{ tour()!.transportType }}</span>
-			</div>
+			<app-attribute-field label="From" [value]="tour()!.from" />
+			<app-attribute-field label="To" [value]="tour()!.to" />
+			<app-attribute-field label="Distance (km)" [value]="tour()!.distanceKm" />
+			<app-attribute-field label="Estimated Time (min)" [value]="tour()!.estimatedTimeMin" />
+			<app-attribute-field label="Transport Type" [value]="tour()!.transportType" />
 		</div>
 
 		<p class="tour-description">{{ tour()!.description }}</p>

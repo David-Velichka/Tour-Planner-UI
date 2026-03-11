@@ -1,0 +1,9 @@
+.attribute-field {
+	padding: 0.25rem 0.5rem;
+	border-bottom: 1px solid #e0e0e0;
+}
+
+.attribute-label {
+	font-weight: bold;
+	margin-right: 0.5rem;
+}
