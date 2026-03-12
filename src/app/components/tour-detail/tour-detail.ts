@@ -10,5 +10,5 @@ import { AttributeField } from '../shared/attribute-field/attribute-field';
   styleUrl: './tour-detail.css',
 })
 export class TourDetail {
-  readonly tour = input<Tour | undefined>();
+  readonly tour = input<Tour | undefined>(); 
 }
