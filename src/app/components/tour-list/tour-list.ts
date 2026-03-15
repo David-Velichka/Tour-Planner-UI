@@ -1,4 +1,4 @@
-import { Component, output } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { Tour, TransportType } from '../../models/tour.model';
 
 @Component({
@@ -9,6 +9,7 @@ import { Tour, TransportType } from '../../models/tour.model';
 })
 export class TourListComponent {
   readonly tourSelected = output<Tour>();
+  readonly selectedTourId = input<string | undefined>(undefined);
 
   readonly tours: Tour[] = [
     {

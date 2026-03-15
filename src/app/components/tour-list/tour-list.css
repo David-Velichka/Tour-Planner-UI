@@ -12,3 +12,8 @@
 .tour-item:hover {
 	background-color: #e8e8e8;
 }
+
+.tour-item.selected {
+	background-color: #d9e7ff;
+	font-weight: 600;
+}

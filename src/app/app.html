@@ -18,7 +18,9 @@
 			<button type="button" disabled>+</button>
 		</div>
 
-		<app-tour-list (tourSelected)="onTourSelected($event)"></app-tour-list>
+		<app-tour-list
+			(tourSelected)="onTourSelected($event)"
+			[selectedTourId]="selectedTour()?.id"></app-tour-list>
 	</aside>
 
 	<main class="main-content">
