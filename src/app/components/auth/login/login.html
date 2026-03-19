@@ -1,0 +1,32 @@
+<div class="login-page">
+  <section class="login-card">
+    <h1>Login</h1>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onLogin()" novalidate>
+      <div class="form-field">
+        <label for="username">username</label>
+        <input id="username" type="text" formControlName="username" />
+        @if (loginForm.controls.username.touched && loginForm.controls.username.invalid) {
+          <p class="validation-message">Username is required.</p>
+        }
+      </div>
+
+      <div class="form-field">
+        <label for="password">password</label>
+        <input id="password" type="password" formControlName="password" />
+        @if (loginForm.controls.password.touched && loginForm.controls.password.invalid) {
+          <p class="validation-message">Password is required.</p>
+        }
+      </div>
+
+      @if (errorMessage) {
+        <p class="error-message">{{ errorMessage }}</p>
+      }
+
+      <div class="actions">
+        <button type="submit" [disabled]="loginForm.invalid">Login</button>
+        <button type="button" class="secondary" (click)="goToRegister()">Register</button>
+      </div>
+    </form>
+  </section>
+</div>

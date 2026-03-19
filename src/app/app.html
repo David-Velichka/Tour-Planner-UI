@@ -1,3 +1,6 @@
+@if (isAuthRoute()) {
+	<router-outlet></router-outlet>
+} @else {
 <header class="top-bar">
 	<div class="top-bar-left">Tourplanner</div>
 
@@ -27,3 +30,4 @@
 		<app-tour-detail [tour]="selectedTour()"></app-tour-detail>
 	</main>
 </div>
+}
