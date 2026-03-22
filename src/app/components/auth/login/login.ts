@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -10,6 +11,7 @@ import { Router } from '@angular/router';
 })
 export class Login {
   private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
 
   readonly loginForm = new FormGroup({
     username: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -26,7 +28,15 @@ export class Login {
       return;
     }
 
-    this.errorMessage = 'No login yet. Change path to /app';
+    const { username, password } = this.loginForm.getRawValue();
+    const loginSuccessful = this.authService.login(username, password);
+
+    if (loginSuccessful) {
+      this.router.navigate(['/app']);
+      return;
+    }
+
+    this.errorMessage = 'Invalid username or password.';
   }
  
   goToRegister(): void {
