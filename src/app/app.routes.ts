@@ -1,12 +1,14 @@
 import { Routes } from '@angular/router';
 import { App } from './app';
 import { Login } from './components/auth/login/login';
+import { MainShell } from './components/main-shell/main-shell';
 import { Register } from './components/auth/register/register';
+import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
 	{ path: 'login', component: Login },
 	{ path: 'register', component: Register },
-	{ path: 'app', component: App },
+	{ path: 'app', component: MainShell, canActivate: [authGuard] },
 	{ path: '', pathMatch: 'full', redirectTo: 'login' }, // root path
 	{ path: '**', redirectTo: 'login' } // random path
 ];
