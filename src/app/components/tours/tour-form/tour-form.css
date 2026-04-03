@@ -1,0 +1,84 @@
+.tour-form-container {
+  background-color: #ffffff;
+  border: 1px solid #d8d8d8;
+  border-radius: 8px;
+  max-width: 780px;
+  padding: 1rem;
+}
+
+.tour-form-container h3 {
+  margin: 0 0 1rem;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-field-row {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.form-field input,
+.form-field textarea,
+.form-field select {
+  border: 1px solid #bcbcbc;
+  border-radius: 4px;
+  font: inherit;
+  padding: 0.45rem 0.5rem;
+}
+
+.validation-message {
+  color: #b42318;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.image-preview {
+  color: #585858;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.form-actions button {
+  border: 1px solid #3b3b3b;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 0.4rem 0.8rem;
+}
+
+.form-actions button.secondary {
+  background-color: #f1f1f1;
+}
+
+.form-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+@media (max-width: 900px) {
+  .form-field-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .form-field-row {
+    grid-template-columns: 1fr;
+  }
+}

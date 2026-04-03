@@ -16,15 +16,33 @@
   <aside class="sidebar">
     <div class="sidebar-header">
       <h2>My Tours</h2>
-      <button type="button" disabled>+</button>
+      <button type="button" (click)="openCreateTourForm()">+</button>
     </div>
 
     <app-tour-list
+      [tours]="tours()"
       (tourSelected)="onTourSelected($event)"
       [selectedTourId]="selectedTour()?.id"></app-tour-list>
   </aside>
 
   <main class="main-content">
-    <app-tour-detail [tour]="selectedTour()"></app-tour-detail>
+    @if (showCreateTourForm()) {
+      <section class="form-section">
+        <app-tour-form
+          (tourSaved)="onTourSaved($event)"
+          (cancelled)="onCreateCancelled()"></app-tour-form>
+      </section>
+    }
+
+    @if (editingTour()) {
+      <section class="form-section">
+        <app-tour-form
+          [tour]="editingTour()"
+          (tourSaved)="onEditTourSaved($event)"
+          (cancelled)="onEditCancelled()"></app-tour-form>
+      </section>
+    }
+
+    <app-tour-detail [tour]="selectedTour()" (editRequested)="startEditTour($event)"></app-tour-detail>
   </main>
 </div>

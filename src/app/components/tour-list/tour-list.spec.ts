@@ -8,7 +8,7 @@ describe('TourListComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [TourListComponent]
+      imports: [TourListComponent]
     })
     .compileComponents();
 

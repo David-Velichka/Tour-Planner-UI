@@ -8,6 +8,17 @@
 	margin: 0;
 }
 
+.tour-actions {
+	display: flex;
+}
+
+.tour-actions button {
+	border: 1px solid #3b3b3b;
+	border-radius: 4px;
+	cursor: pointer;
+	padding: 0.4rem 0.8rem;
+}
+
 .detail-row {
 	display: flex;
 	flex-wrap: wrap;
@@ -23,6 +34,23 @@
 
 .detail-label {
 	font-weight: 700;
+}
+
+.tour-image-wrapper {
+	aspect-ratio: 16 / 9;
+	border: 1px solid #c5c5c5;
+	border-radius: 6px;
+	overflow: hidden;
+	max-width: 640px;
+	position: relative;
+	width: 100%;
+}
+
+.tour-image {
+	display: block;
+	height: 100%;
+	object-fit: cover;
+	width: 100%;
 }
 
 .tour-description {

@@ -4,6 +4,10 @@
 	<section class="tour-detail">
 		<h2>{{ tour()!.name }}</h2>
 
+		<div class="tour-actions">
+			<button type="button" (click)="requestEdit()">Edit</button>
+		</div>
+
 		<div class="detail-row">
 			<app-attribute-field label="From" [value]="tour()!.from" />
 			<app-attribute-field label="To" [value]="tour()!.to" />
@@ -11,6 +15,16 @@
 			<app-attribute-field label="Estimated Time (min)" [value]="tour()!.estimatedTimeMin" />
 			<app-attribute-field label="Transport Type" [value]="tour()!.transportType" />
 		</div>
+
+		@if (imagePath()) {
+			<div class="tour-image-wrapper">
+				<img
+					[src]="imagePath()!"
+					[alt]="imageAlt()"
+					class="tour-image"
+				/>
+			</div>
+		}
 
 		<p class="tour-description">{{ tour()!.description }}</p>
 

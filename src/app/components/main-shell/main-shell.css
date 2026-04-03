@@ -55,6 +55,10 @@
   padding: 1rem;
 }
 
+.form-section {
+  margin-bottom: 1rem;
+}
+
 @media (max-width: 768px) {
   .layout-wrapper {
     flex-direction: column;

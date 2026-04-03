@@ -1,0 +1,113 @@
+<section class="tour-form-container">
+  <h3>@if (isEditMode()) { Edit Tour } @else { Create Tour }</h3>
+
+  <form [formGroup]="tourForm" (ngSubmit)="onSave()" novalidate>
+    <div class="form-field">
+      <label for="tour-name">Name</label>
+      <input id="tour-name" type="text" formControlName="name" />
+      @if (tourForm.controls.name.touched && tourForm.controls.name.hasError('required')) {
+        <p class="validation-message">This field is required.</p>
+      }
+      @if (tourForm.controls.name.touched && tourForm.controls.name.hasError('minlength')) {
+        <p class="validation-message">Must be at least 3 characters.</p>
+      }
+      @if (tourForm.controls.name.touched && tourForm.controls.name.hasError('maxlength')) {
+        <p class="validation-message">Must not exceed 100 characters.</p>
+      }
+    </div>
+
+    <div class="form-field">
+      <label for="tour-description">Description</label>
+      <textarea id="tour-description" formControlName="description" rows="4"></textarea>
+      @if (tourForm.controls.description.touched && tourForm.controls.description.hasError('required')) {
+        <p class="validation-message">This field is required.</p>
+      }
+      @if (tourForm.controls.description.touched && tourForm.controls.description.hasError('maxlength')) {
+        <p class="validation-message">Must not exceed 500 characters.</p>
+      }
+    </div>
+
+    <div class="form-field-row">
+      <div class="form-field">
+        <label for="tour-from">From</label>
+        <input id="tour-from" type="text" formControlName="from" />
+        @if (tourForm.controls.from.touched && tourForm.controls.from.hasError('required')) {
+          <p class="validation-message">This field is required.</p>
+        }
+        @if (tourForm.controls.from.touched && tourForm.controls.from.hasError('maxlength')) {
+          <p class="validation-message">Must not exceed 100 characters.</p>
+        }
+      </div>
+
+      <div class="form-field">
+        <label for="tour-to">To</label>
+        <input id="tour-to" type="text" formControlName="to" />
+        @if (tourForm.controls.to.touched && tourForm.controls.to.hasError('required')) {
+          <p class="validation-message">This field is required.</p>
+        }
+        @if (tourForm.controls.to.touched && tourForm.controls.to.hasError('maxlength')) {
+          <p class="validation-message">Must not exceed 100 characters.</p>
+        }
+      </div>
+    </div>
+
+    <div class="form-field-row">
+      <div class="form-field">
+        <label for="tour-transport-type">Transport Type</label>
+        <select id="tour-transport-type" formControlName="transportType">
+          <option value="" disabled>Select one</option>
+          @for (transportType of transportTypes; track transportType) {
+            <option [value]="transportType">{{ transportType }}</option>
+          }
+        </select>
+        @if (tourForm.controls.transportType.touched && tourForm.controls.transportType.hasError('required')) {
+          <p class="validation-message">This field is required.</p>
+        }
+      </div>
+
+      <div class="form-field">
+        <label for="tour-distance">Distance (km)</label>
+        <input id="tour-distance" type="number" step="0.1" min="0.1" formControlName="distanceKm" />
+        @if (tourForm.controls.distanceKm.touched && tourForm.controls.distanceKm.hasError('required')) {
+          <p class="validation-message">This field is required.</p>
+        }
+        @if (tourForm.controls.distanceKm.touched && tourForm.controls.distanceKm.hasError('min')) {
+          <p class="validation-message">Must be a positive number.</p>
+        }
+      </div>
+
+      <div class="form-field">
+        <label for="tour-estimated-time">Estimated Time (min)</label>
+        <input id="tour-estimated-time" type="number" min="1" formControlName="estimatedTimeMin" />
+        @if (tourForm.controls.estimatedTimeMin.touched && tourForm.controls.estimatedTimeMin.hasError('required')) {
+          <p class="validation-message">This field is required.</p>
+        }
+        @if (tourForm.controls.estimatedTimeMin.touched && tourForm.controls.estimatedTimeMin.hasError('min')) {
+          <p class="validation-message">Must be a positive number.</p>
+        }
+      </div>
+    </div>
+
+    <div class="form-field">
+      <label for="tour-image">Tour Image (optional)</label>
+      <input
+        id="tour-image"
+        type="file"
+        accept="image/*"
+        (change)="onImageSelected($event)"
+      />
+      <p class="image-preview">
+        @if (selectedImageName()) {
+          {{ selectedImageName() }}
+        } @else {
+          No image selected
+        }
+      </p>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" [disabled]="tourForm.invalid">Save</button>
+      <button type="button" class="secondary" (click)="onCancel()">Cancel</button>
+    </div>
+  </form>
+</section>

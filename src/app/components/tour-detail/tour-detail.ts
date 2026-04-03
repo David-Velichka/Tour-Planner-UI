@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
 import { Tour } from '../../models/tour.model';
 import { TourLogList } from '../tour-log-list/tour-log-list';
 import { AttributeField } from '../shared/attribute-field/attribute-field';
@@ -10,5 +10,32 @@ import { AttributeField } from '../shared/attribute-field/attribute-field';
   styleUrl: './tour-detail.css',
 })
 export class TourDetail {
-  readonly tour = input<Tour | undefined>(); 
+  readonly tour = input<Tour | undefined>();
+  readonly editRequested = output<Tour>();
+  readonly imagePath = computed(() => {
+    const imageFilePath = this.tour()?.imageFilePath?.trim();
+
+    if (!imageFilePath) {
+      return undefined;
+    }
+
+    // absolute path or full URL
+    if (imageFilePath.startsWith('/') || imageFilePath.startsWith('http')) {
+      return imageFilePath;
+    }
+
+    // Relative path
+    return `/${imageFilePath}`;
+  });
+  readonly imageAlt = computed(() => `Tour image for ${this.tour()?.name ?? 'selected tour'}`);
+
+  requestEdit(): void {
+    const currentTour = this.tour();
+
+    if (!currentTour) {
+      return;
+    }
+
+    this.editRequested.emit(currentTour);
+  }
 }
