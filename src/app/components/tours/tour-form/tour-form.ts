@@ -89,27 +89,10 @@ export class TourForm {
     const selectedFile = fileInput?.files?.item(0);
 
     if (selectedFile) {
-      const fileReader = new FileReader();
-
-      fileReader.onload = () => {
-        const imageDataUrl = typeof fileReader.result === 'string' ? fileReader.result : '';
-
-        if (!imageDataUrl) {
-          this.tourForm.controls.imageFile.setValue('');
-          this.selectedImageName.set('');
-          return;
-        }
-
-        this.tourForm.controls.imageFile.setValue(imageDataUrl);
-        this.selectedImageName.set(selectedFile.name);
-      };
-
-      fileReader.onerror = () => {
-        this.tourForm.controls.imageFile.setValue('');
-        this.selectedImageName.set('');
-      };
-
-      fileReader.readAsDataURL(selectedFile);
+      // Store the filename reference
+      const fileName = selectedFile.name.trim();
+      this.tourForm.controls.imageFile.setValue(fileName);
+      this.selectedImageName.set(fileName);
       return;
     }
 
@@ -125,9 +108,8 @@ export class TourForm {
 
     const currentTour = this.tour();
     const formValue = this.tourForm.getRawValue();
-    const imageFromSelection = formValue.imageFile.trim();
-    const rawImageFilePath = imageFromSelection || currentTour?.imageFilePath || '';
-    const imageFilePath = rawImageFilePath.trim() || undefined;
+    // Use selected filename if provided, otherwise preserve existing image reference
+    const imageFilePath = formValue.imageFile.trim() || currentTour?.imageFilePath || undefined;
 
     const tourToSave: Tour = {
       id: currentTour?.id ?? this.createTourId(),

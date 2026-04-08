@@ -10,6 +10,7 @@
 
 .tour-actions {
 	display: flex;
+	gap: 0.5rem;
 }
 
 .tour-actions button {
@@ -17,6 +18,12 @@
 	border-radius: 4px;
 	cursor: pointer;
 	padding: 0.4rem 0.8rem;
+}
+
+.tour-actions button.danger {
+	background-color: #d92d20;
+	border-color: #d92d20;
+	color: #ffffff;
 }
 
 .detail-row {

@@ -59,6 +59,42 @@
   margin-bottom: 1rem;
 }
 
+.delete-confirmation {
+  background-color: #fff5f5;
+  border: 1px solid #f2b6b6;
+  border-radius: 8px;
+  max-width: 640px;
+  padding: 1rem;
+}
+
+.delete-confirmation h3 {
+  margin: 0 0 0.5rem;
+}
+
+.delete-confirmation p {
+  margin: 0;
+}
+
+.delete-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.delete-actions button {
+  border: 1px solid #3b3b3b;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 0.4rem 0.8rem;
+}
+
+.delete-actions .danger {
+  background-color: #d92d20;
+  border-color: #d92d20;
+  color: #ffffff;
+}
+
 @media (max-width: 768px) {
   .layout-wrapper {
     flex-direction: column;

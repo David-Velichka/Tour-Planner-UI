@@ -43,6 +43,32 @@
       </section>
     }
 
-    <app-tour-detail [tour]="selectedTour()" (editRequested)="startEditTour($event)"></app-tour-detail>
+    @if (tourToDelete()) {
+      <section class="form-section delete-confirmation" role="alertdialog" aria-modal="true" aria-labelledby="delete-tour-title">
+        <h3 id="delete-tour-title">Delete Tour</h3>
+        <p>Are you sure you want to delete "{{ tourToDelete()!.name }}"?</p>
+        <div class="delete-actions">
+          <button type="button" class="danger" (click)="confirmDeleteTour()">Delete</button>
+          <button type="button" (click)="cancelDeleteTour()">Cancel</button>
+        </div>
+      </section>
+    }
+
+    @if (showCreateTourLogForm()) {
+      <section class="form-section">
+        <app-tour-log-form
+          [log]="undefined"
+          [tourId]="selectedTour()?.id ?? ''"
+          (logSaved)="onTourLogSaved($event)"
+          (cancelled)="onCreateTourLogCancelled()"></app-tour-log-form>
+      </section>
+    }
+
+    <app-tour-detail
+      [tour]="selectedTour()"
+      [logs]="tourLogs()"
+      (addLogRequested)="openCreateTourLogForm()"
+      (editRequested)="startEditTour($event)"
+      (deleteRequested)="startDeleteTour($event)"></app-tour-detail>
   </main>
 </div>

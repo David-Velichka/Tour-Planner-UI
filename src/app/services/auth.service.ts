@@ -10,7 +10,9 @@ type UserRecord = {
 })
 export class AuthService {
   // Saved only in memory for now. (intermediate hand-in)
-  private readonly users = signal<UserRecord[]>([]);
+  private readonly users = signal<UserRecord[]>([
+    { username: 'asdf', password: 'asdf' },
+  ]);
   private readonly currentUser = signal<string | undefined>(undefined);
 
   private readonly loggedIn = computed(() => this.currentUser() !== undefined);

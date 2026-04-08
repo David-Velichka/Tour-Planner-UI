@@ -1,0 +1,75 @@
+<section class="tour-log-form-container">
+  <h3>@if (isEditMode()) { Edit Tour Log } @else { Create Tour Log }</h3>
+
+  <form [formGroup]="logForm" (ngSubmit)="onSave()" novalidate>
+    <div class="form-field">
+      <label for="log-logged-at">Date and Time</label>
+      <input id="log-logged-at" type="datetime-local" formControlName="loggedAt" />
+      @if (logForm.controls.loggedAt.touched && logForm.controls.loggedAt.hasError('required')) {
+        <p class="validation-message">This field is required.</p>
+      }
+    </div>
+
+    <div class="form-field">
+      <label for="log-comment">Comment</label>
+      <textarea id="log-comment" rows="4" formControlName="comment"></textarea>
+      @if (logForm.controls.comment.touched && logForm.controls.comment.hasError('required')) {
+        <p class="validation-message">This field is required.</p>
+      }
+      @if (logForm.controls.comment.touched && logForm.controls.comment.hasError('maxlength')) {
+        <p class="validation-message">Must not exceed 500 characters.</p>
+      }
+    </div>
+
+    <div class="form-field-row">
+      <div class="form-field">
+        <label for="log-difficulty">Difficulty (1-10)</label>
+        <input id="log-difficulty" type="number" min="1" max="10" formControlName="difficulty" />
+        @if (logForm.controls.difficulty.touched && logForm.controls.difficulty.hasError('required')) {
+          <p class="validation-message">This field is required.</p>
+        }
+        @if (logForm.controls.difficulty.touched && (logForm.controls.difficulty.hasError('min') || logForm.controls.difficulty.hasError('max'))) {
+          <p class="validation-message">Must be between 1 and 10.</p>
+        }
+      </div>
+
+      <div class="form-field">
+        <label for="log-total-distance">Total Distance (km)</label>
+        <input id="log-total-distance" type="number" min="0.1" step="0.1" formControlName="totalDistanceKm" />
+        @if (logForm.controls.totalDistanceKm.touched && logForm.controls.totalDistanceKm.hasError('required')) {
+          <p class="validation-message">This field is required.</p>
+        }
+        @if (logForm.controls.totalDistanceKm.touched && logForm.controls.totalDistanceKm.hasError('min')) {
+          <p class="validation-message">Must be a positive number.</p>
+        }
+      </div>
+
+      <div class="form-field">
+        <label for="log-total-time">Total Time (min)</label>
+        <input id="log-total-time" type="number" min="1" formControlName="totalTimeMin" />
+        @if (logForm.controls.totalTimeMin.touched && logForm.controls.totalTimeMin.hasError('required')) {
+          <p class="validation-message">This field is required.</p>
+        }
+        @if (logForm.controls.totalTimeMin.touched && logForm.controls.totalTimeMin.hasError('min')) {
+          <p class="validation-message">Must be a positive number.</p>
+        }
+      </div>
+
+      <div class="form-field">
+        <label for="log-rating">Rating (1-5)</label>
+        <input id="log-rating" type="number" min="1" max="5" formControlName="rating" />
+        @if (logForm.controls.rating.touched && logForm.controls.rating.hasError('required')) {
+          <p class="validation-message">This field is required.</p>
+        }
+        @if (logForm.controls.rating.touched && (logForm.controls.rating.hasError('min') || logForm.controls.rating.hasError('max'))) {
+          <p class="validation-message">Must be between 1 and 5.</p>
+        }
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" [disabled]="logForm.invalid">Save</button>
+      <button type="button" class="secondary" (click)="onCancel()">Cancel</button>
+    </div>
+  </form>
+</section>

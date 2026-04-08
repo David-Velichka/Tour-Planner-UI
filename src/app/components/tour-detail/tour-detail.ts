@@ -1,5 +1,6 @@
 import { Component, computed, input, output } from '@angular/core';
 import { Tour } from '../../models/tour.model';
+import { TourLog } from '../../models/tour-log.model';
 import { TourLogList } from '../tour-log-list/tour-log-list';
 import { AttributeField } from '../shared/attribute-field/attribute-field';
 
@@ -11,7 +12,10 @@ import { AttributeField } from '../shared/attribute-field/attribute-field';
 })
 export class TourDetail {
   readonly tour = input<Tour | undefined>();
+  readonly logs = input<TourLog[]>([]);
+  readonly addLogRequested = output<void>();
   readonly editRequested = output<Tour>();
+  readonly deleteRequested = output<Tour>();
   readonly imagePath = computed(() => {
     const imageFilePath = this.tour()?.imageFilePath?.trim();
 
@@ -37,5 +41,19 @@ export class TourDetail {
     }
 
     this.editRequested.emit(currentTour);
+  }
+
+  requestDelete(): void {
+    const currentTour = this.tour();
+
+    if (!currentTour) {
+      return;
+    }
+
+    this.deleteRequested.emit(currentTour);
+  }
+
+  requestAddLog(): void {
+    this.addLogRequested.emit();
   }
 }

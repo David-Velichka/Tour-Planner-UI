@@ -6,6 +6,7 @@
 
 		<div class="tour-actions">
 			<button type="button" (click)="requestEdit()">Edit</button>
+			<button type="button" class="danger" (click)="requestDelete()">Delete</button>
 		</div>
 
 		<div class="detail-row">
@@ -32,6 +33,6 @@
 			<span>Map will be displayed here</span>
 		</div>
 
-		<app-tour-log-list [tourId]="tour()!.id" />
+		<app-tour-log-list [tourId]="tour()!.id" [logs]="logs()" (addRequested)="requestAddLog()" />
 	</section>
 }
