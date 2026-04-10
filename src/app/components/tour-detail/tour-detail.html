@@ -29,8 +29,12 @@
 
 		<p class="tour-description">{{ tour()!.description }}</p>
 
-		<div class="map-placeholder">
-			<span>Map will be displayed here</span>
+		<div class="map-wrapper">
+			<div #leafletMap class="tour-map" aria-label="Tour map"></div>
+
+			@if (mapError()) {
+				<p class="map-error">{{ mapError() }}</p>
+			}
 		</div>
 
 		<app-tour-log-list [tourId]="tour()!.id" [logs]="logs()" (addRequested)="requestAddLog()" />

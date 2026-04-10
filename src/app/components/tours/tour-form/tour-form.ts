@@ -89,9 +89,9 @@ export class TourForm {
     const selectedFile = fileInput?.files?.item(0);
 
     if (selectedFile) {
-      // Store the filename reference
       const fileName = selectedFile.name.trim();
-      this.tourForm.controls.imageFile.setValue(fileName);
+      const imageUrl = URL.createObjectURL(selectedFile);
+      this.tourForm.controls.imageFile.setValue(imageUrl);
       this.selectedImageName.set(fileName);
       return;
     }
