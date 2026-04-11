@@ -37,6 +37,11 @@
 			}
 		</div>
 
-		<app-tour-log-list [tourId]="tour()!.id" [logs]="logs()" (addRequested)="requestAddLog()" />
+		<app-tour-log-list
+			[tourId]="tour()!.id"
+			[logs]="logs()"
+			(addRequested)="requestAddLog()"
+			(editRequested)="requestEditLog($event)"
+			(deleteRequested)="requestDeleteLog($event)" />
 	</section>
 }

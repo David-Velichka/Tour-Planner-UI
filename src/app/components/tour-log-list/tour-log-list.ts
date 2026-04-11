@@ -14,6 +14,8 @@ export class TourLogList {
   readonly logs = input<TourLog[]>([]);
   // Output: Clicking "Add Log" button
   readonly addRequested = output<void>();
+  readonly editRequested = output<TourLog>();
+  readonly deleteRequested = output<TourLog>();
 
   // Filtered logs based on current tourId
   readonly filteredLogs = computed(() =>
@@ -28,5 +30,13 @@ export class TourLogList {
     }
 
     this.addRequested.emit();
+  }
+
+  requestEdit(log: TourLog): void {
+    this.editRequested.emit(log);
+  }
+
+  requestDelete(log: TourLog): void {
+    this.deleteRequested.emit(log);
   }
 }

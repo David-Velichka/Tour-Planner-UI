@@ -7,29 +7,38 @@
   @if (filteredLogs().length === 0) {
     <p>No logs recorded for this tour.</p>
   } @else {
-    <table>
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Difficulty</th>
-          <th>Total Distance</th>
-          <th>Total Time</th>
-          <th>Rating</th>
-          <th>Comment</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (log of filteredLogs(); track log.id) {
+    <div class="table-scroll">
+      <table>
+        <thead>
           <tr>
-            <td>{{ log.loggedAt }}</td>
-            <td>{{ log.difficulty }}</td>
-            <td>{{ log.totalDistanceKm }} km</td>
-            <td>{{ log.totalTimeMin }} min</td>
-            <td>{{ log.rating }}</td>
-            <td>{{ log.comment }}</td>
+            <th>Date</th>
+            <th>Difficulty</th>
+            <th>Total Distance</th>
+            <th>Total Time</th>
+            <th>Rating</th>
+            <th>Comment</th>
+            <th>Actions</th>
           </tr>
-        }
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          @for (log of filteredLogs(); track log.id) {
+            <tr>
+              <td>{{ log.loggedAt }}</td>
+              <td>{{ log.difficulty }}</td>
+              <td>{{ log.totalDistanceKm }} km</td>
+              <td>{{ log.totalTimeMin }} min</td>
+              <td>{{ log.rating }}</td>
+              <td>{{ log.comment }}</td>
+              <td>
+                <div class="row-actions">
+                  <button type="button" (click)="requestEdit(log)">Edit</button>
+                  <button type="button" class="danger" (click)="requestDelete(log)">Delete</button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
   }
 </section>

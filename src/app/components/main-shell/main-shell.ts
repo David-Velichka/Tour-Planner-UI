@@ -57,6 +57,8 @@ export class MainShell {
   readonly editingTour = signal<Tour | undefined>(undefined);
   readonly tourToDelete = signal<Tour | undefined>(undefined);
   readonly showCreateTourLogForm = signal(false);
+  readonly editingTourLog = signal<TourLog | undefined>(undefined);
+  readonly tourLogToDelete = signal<TourLog | undefined>(undefined);
 
   // hardcoded Tour logs.
   readonly tourLogs = signal<TourLog[]>([
@@ -123,6 +125,8 @@ export class MainShell {
 
     if (previouslySelectedTourId && previouslySelectedTourId !== tour.id) {
       this.showCreateTourLogForm.set(false);
+      this.editingTourLog.set(undefined);
+      this.tourLogToDelete.set(undefined);
     }
 
     this.selectedTour.set(tour);
@@ -130,6 +134,8 @@ export class MainShell {
 
   openCreateTourForm(): void {
     this.showCreateTourLogForm.set(false);
+    this.editingTourLog.set(undefined);
+    this.tourLogToDelete.set(undefined);
     this.editingTour.set(undefined);
     this.tourToDelete.set(undefined);
     this.showCreateTourForm.set(true);
@@ -147,6 +153,8 @@ export class MainShell {
 
   startEditTour(tour: Tour): void {
     this.showCreateTourLogForm.set(false);
+    this.editingTourLog.set(undefined);
+    this.tourLogToDelete.set(undefined);
     this.showCreateTourForm.set(false);
     this.tourToDelete.set(undefined);
     this.editingTour.set(tour);
@@ -170,6 +178,8 @@ export class MainShell {
 
   startDeleteTour(tour: Tour): void {
     this.showCreateTourLogForm.set(false);
+    this.editingTourLog.set(undefined);
+    this.tourLogToDelete.set(undefined);
     this.showCreateTourForm.set(false);
     this.editingTour.set(undefined);
     this.tourToDelete.set(tour);
@@ -193,6 +203,8 @@ export class MainShell {
     if (this.selectedTour()?.id === pendingDeleteTour.id) {
       this.selectedTour.set(undefined);
       this.showCreateTourLogForm.set(false);
+      this.editingTourLog.set(undefined);
+      this.tourLogToDelete.set(undefined);
     }
 
     this.tourToDelete.set(undefined);
@@ -212,6 +224,8 @@ export class MainShell {
     this.showCreateTourForm.set(false);
     this.editingTour.set(undefined);
     this.tourToDelete.set(undefined);
+    this.editingTourLog.set(undefined);
+    this.tourLogToDelete.set(undefined);
     this.showCreateTourLogForm.set(true);
   }
 
@@ -234,6 +248,70 @@ export class MainShell {
 
   onCreateTourLogCancelled(): void {
     this.showCreateTourLogForm.set(false);
+  }
+
+  startEditTourLog(log: TourLog): void {
+    const currentSelectedTour = this.selectedTour();
+
+    if (!currentSelectedTour || log.tourId !== currentSelectedTour.id) {
+      return;
+    }
+
+    this.showCreateTourForm.set(false);
+    this.editingTour.set(undefined);
+    this.tourToDelete.set(undefined);
+    this.showCreateTourLogForm.set(false);
+    this.tourLogToDelete.set(undefined);
+    this.editingTourLog.set(log);
+  }
+
+  onEditTourLogSaved(updatedLog: TourLog): void {
+    this.tourLogs.update((currentLogs) =>
+      currentLogs.map((log) => (log.id === updatedLog.id ? updatedLog : log))
+    );
+
+    this.editingTourLog.set(undefined);
+  }
+
+  onEditTourLogCancelled(): void {
+    this.editingTourLog.set(undefined);
+  }
+
+  startDeleteTourLog(log: TourLog): void {
+    const currentSelectedTour = this.selectedTour();
+
+    if (!currentSelectedTour || log.tourId !== currentSelectedTour.id) {
+      return;
+    }
+
+    this.showCreateTourForm.set(false);
+    this.editingTour.set(undefined);
+    this.tourToDelete.set(undefined);
+    this.showCreateTourLogForm.set(false);
+    this.editingTourLog.set(undefined);
+    this.tourLogToDelete.set(log);
+  }
+
+  confirmDeleteTourLog(): void {
+    const pendingDeleteLog = this.tourLogToDelete();
+
+    if (!pendingDeleteLog) {
+      return;
+    }
+
+    this.tourLogs.update((currentLogs) =>
+      currentLogs.filter((log) => log.id !== pendingDeleteLog.id)
+    );
+
+    if (this.editingTourLog()?.id === pendingDeleteLog.id) {
+      this.editingTourLog.set(undefined);
+    }
+
+    this.tourLogToDelete.set(undefined);
+  }
+
+  cancelDeleteTourLog(): void {
+    this.tourLogToDelete.set(undefined);
   }
 
   onLogout(): void {

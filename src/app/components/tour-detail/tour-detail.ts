@@ -45,6 +45,8 @@ export class TourDetail {
   readonly addLogRequested = output<void>();
   readonly editRequested = output<Tour>();
   readonly deleteRequested = output<Tour>();
+  readonly logEditRequested = output<TourLog>();
+  readonly logDeleteRequested = output<TourLog>();
   readonly mapError = signal<string | undefined>(undefined);
   readonly imagePath = computed(() => {
     const imageFilePath = this.tour()?.imageFilePath?.trim();
@@ -115,6 +117,14 @@ export class TourDetail {
 
   requestAddLog(): void {
     this.addLogRequested.emit();
+  }
+
+  requestEditLog(log: TourLog): void {
+    this.logEditRequested.emit(log);
+  }
+
+  requestDeleteLog(log: TourLog): void {
+    this.logDeleteRequested.emit(log);
   }
 
   onWindowResize(): void {

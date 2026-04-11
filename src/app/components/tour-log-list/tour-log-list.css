@@ -1,5 +1,6 @@
 .tour-logs {
   margin-top: 20px;
+  width: 100%;
 }
 
 .tour-logs h3 {
@@ -30,6 +31,10 @@ table {
   border-collapse: collapse;
 }
 
+.table-scroll {
+  width: 100%;
+}
+
 th,
 td {
   padding: 8px 12px;
@@ -44,4 +49,42 @@ thead tr {
 
 tbody tr:hover {
   background-color: #f9f9f9;
+}
+
+.row-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.row-actions button {
+  border: 1px solid #3b3b3b;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0.2rem 0.5rem;
+}
+
+.row-actions .danger {
+  background-color: #d92d20;
+  border-color: #d92d20;
+  color: #ffffff;
+}
+
+@media (max-width: 768px) {
+  .table-scroll {
+    -webkit-overflow-scrolling: touch;
+    overflow-x: auto;
+  }
+
+  table {
+    min-width: 700px;
+  }
+
+  .row-actions {
+    flex-wrap: nowrap;
+  }
+
+  .row-actions button {
+    white-space: nowrap;
+  }
 }
