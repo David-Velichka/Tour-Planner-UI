@@ -19,7 +19,7 @@ function visibleCharactersValidator(control: AbstractControl): ValidationErrors 
   return value.trim().length > 0 ? null : { visibleCharacters: true };
 }
 
-function validDateNotFutureValidator(control: AbstractControl): ValidationErrors | null {
+function validDateValidator(control: AbstractControl): ValidationErrors | null {
   const value = control.value;
 
   if (typeof value !== 'string' || value.trim().length === 0) {
@@ -30,10 +30,6 @@ function validDateNotFutureValidator(control: AbstractControl): ValidationErrors
 
   if (Number.isNaN(selectedDate.getTime())) {
     return { invalidDate: true };
-  }
-
-  if (selectedDate.getTime() > Date.now()) {
-    return { futureDate: true };
   }
 
   return null;
@@ -58,7 +54,7 @@ export class TourLogForm {
   readonly logForm = new FormGroup({
     loggedAt: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, validDateNotFutureValidator],
+      validators: [Validators.required, validDateValidator],
     }),
     comment: new FormControl('', {
       nonNullable: true,

@@ -11,9 +11,6 @@
       @if (logForm.controls.loggedAt.touched && logForm.controls.loggedAt.hasError('invalidDate')) {
         <p class="validation-message">Must be a valid date and time.</p>
       }
-      @if (logForm.controls.loggedAt.touched && logForm.controls.loggedAt.hasError('futureDate')) {
-        <p class="validation-message">Date and time must not be in the future.</p>
-      }
     </div>
 
     <div class="form-field">
