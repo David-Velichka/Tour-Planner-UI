@@ -14,6 +14,9 @@
       @if (tourForm.controls.name.touched && tourForm.controls.name.hasError('maxlength')) {
         <p class="validation-message">Must not exceed 100 characters.</p>
       }
+      @if (tourForm.controls.name.touched && tourForm.controls.name.hasError('visibleCharacters') && !tourForm.controls.name.hasError('required')) {
+        <p class="validation-message">Must contain visible characters.</p>
+      }
     </div>
 
     <div class="form-field">
@@ -24,6 +27,9 @@
       }
       @if (tourForm.controls.description.touched && tourForm.controls.description.hasError('maxlength')) {
         <p class="validation-message">Must not exceed 500 characters.</p>
+      }
+      @if (tourForm.controls.description.touched && tourForm.controls.description.hasError('visibleCharacters') && !tourForm.controls.description.hasError('required')) {
+        <p class="validation-message">Must contain visible characters.</p>
       }
     </div>
 
@@ -37,6 +43,9 @@
         @if (tourForm.controls.from.touched && tourForm.controls.from.hasError('maxlength')) {
           <p class="validation-message">Must not exceed 100 characters.</p>
         }
+        @if (tourForm.controls.from.touched && tourForm.controls.from.hasError('visibleCharacters') && !tourForm.controls.from.hasError('required')) {
+          <p class="validation-message">Must contain visible characters.</p>
+        }
       </div>
 
       <div class="form-field">
@@ -47,6 +56,9 @@
         }
         @if (tourForm.controls.to.touched && tourForm.controls.to.hasError('maxlength')) {
           <p class="validation-message">Must not exceed 100 characters.</p>
+        }
+        @if (tourForm.controls.to.touched && tourForm.controls.to.hasError('visibleCharacters') && !tourForm.controls.to.hasError('required')) {
+          <p class="validation-message">Must contain visible characters.</p>
         }
       </div>
     </div>
@@ -63,6 +75,9 @@
         @if (tourForm.controls.transportType.touched && tourForm.controls.transportType.hasError('required')) {
           <p class="validation-message">This field is required.</p>
         }
+        @if (tourForm.controls.transportType.touched && tourForm.controls.transportType.hasError('invalidTransportType')) {
+          <p class="validation-message">Must match a valid transport type.</p>
+        }
       </div>
 
       <div class="form-field">
@@ -70,6 +85,9 @@
         <input id="tour-distance" type="number" step="0.1" min="0.1" formControlName="distanceKm" />
         @if (tourForm.controls.distanceKm.touched && tourForm.controls.distanceKm.hasError('required')) {
           <p class="validation-message">This field is required.</p>
+        }
+        @if (tourForm.controls.distanceKm.touched && tourForm.controls.distanceKm.hasError('pattern') && !tourForm.controls.distanceKm.hasError('min')) {
+          <p class="validation-message">Must be a positive number with up to 2 decimals.</p>
         }
         @if (tourForm.controls.distanceKm.touched && tourForm.controls.distanceKm.hasError('min')) {
           <p class="validation-message">Must be a positive number.</p>
@@ -81,6 +99,9 @@
         <input id="tour-estimated-time" type="number" min="1" formControlName="estimatedTimeMin" />
         @if (tourForm.controls.estimatedTimeMin.touched && tourForm.controls.estimatedTimeMin.hasError('required')) {
           <p class="validation-message">This field is required.</p>
+        }
+        @if (tourForm.controls.estimatedTimeMin.touched && tourForm.controls.estimatedTimeMin.hasError('pattern')) {
+          <p class="validation-message">Must be a positive integer.</p>
         }
         @if (tourForm.controls.estimatedTimeMin.touched && tourForm.controls.estimatedTimeMin.hasError('min')) {
           <p class="validation-message">Must be a positive number.</p>

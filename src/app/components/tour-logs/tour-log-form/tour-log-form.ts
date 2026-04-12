@@ -1,6 +1,43 @@
 import { ChangeDetectionStrategy, Component, computed, effect, input, output } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { TourLog } from '../../../models/tour-log.model';
+
+function visibleCharactersValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  return value.trim().length > 0 ? null : { visibleCharacters: true };
+}
+
+function validDateNotFutureValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    return null;
+  }
+
+  const selectedDate = new Date(value);
+
+  if (Number.isNaN(selectedDate.getTime())) {
+    return { invalidDate: true };
+  }
+
+  if (selectedDate.getTime() > Date.now()) {
+    return { futureDate: true };
+  }
+
+  return null;
+}
 
 @Component({
   selector: 'app-tour-log-form',
@@ -21,23 +58,32 @@ export class TourLogForm {
   readonly logForm = new FormGroup({
     loggedAt: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required],
+      validators: [Validators.required, validDateNotFutureValidator],
     }),
     comment: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.maxLength(500)],
+      validators: [
+        Validators.required,
+        Validators.minLength(1),
+        Validators.maxLength(500),
+        visibleCharactersValidator,
+      ],
     }),
     difficulty: new FormControl<number | null>(null, {
-      validators: [Validators.required, Validators.min(1), Validators.max(10)],
+      validators: [Validators.required, Validators.pattern(/^\d+$/), Validators.min(1), Validators.max(10)],
     }),
     totalDistanceKm: new FormControl<number | null>(null, {
-      validators: [Validators.required, Validators.min(0.1)],
+      validators: [
+        Validators.required,
+        Validators.pattern(/^\d+(\.\d{1,2})?$/),
+        Validators.min(0.1),
+      ],
     }),
     totalTimeMin: new FormControl<number | null>(null, {
-      validators: [Validators.required, Validators.min(1)],
+      validators: [Validators.required, Validators.pattern(/^\d+$/), Validators.min(1)],
     }),
     rating: new FormControl<number | null>(null, {
-      validators: [Validators.required, Validators.min(1), Validators.max(5)],
+      validators: [Validators.required, Validators.pattern(/^\d+$/), Validators.min(1), Validators.max(5)],
     }),
   });
 

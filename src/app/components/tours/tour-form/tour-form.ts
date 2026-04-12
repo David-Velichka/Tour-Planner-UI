@@ -1,6 +1,35 @@
 import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { Tour, TransportType } from '../../../models/tour.model';
+
+function visibleCharactersValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  return value.trim().length > 0 ? null : { visibleCharacters: true };
+}
+
+function transportTypeValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+
+  if (value === '' || value === undefined || value === null) {
+    return null;
+  }
+
+  return Object.values(TransportType).includes(value as TransportType)
+    ? null
+    : { invalidTransportType: true };
+}
 
 @Component({
   selector: 'app-tour-form',
@@ -22,29 +51,38 @@ export class TourForm {
   readonly tourForm = new FormGroup({
     name: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.minLength(3), Validators.maxLength(100)],
+      validators: [
+        Validators.required,
+        Validators.minLength(3),
+        Validators.maxLength(100),
+        visibleCharactersValidator,
+      ],
     }),
     description: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.maxLength(500)],
+      validators: [Validators.required, Validators.maxLength(500), visibleCharactersValidator],
     }),
     from: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.maxLength(100)],
+      validators: [Validators.required, Validators.maxLength(100), visibleCharactersValidator],
     }),
     to: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.maxLength(100)],
+      validators: [Validators.required, Validators.maxLength(100), visibleCharactersValidator],
     }),
     transportType: new FormControl<TransportType | ''>('', {
       nonNullable: true,
-      validators: [Validators.required],
+      validators: [Validators.required, transportTypeValidator],
     }),
     distanceKm: new FormControl<number | null>(null, {
-      validators: [Validators.required, Validators.min(0.1)],
+      validators: [
+        Validators.required,
+        Validators.pattern(/^\d+(\.\d{1,2})?$/),
+        Validators.min(0.1),
+      ],
     }),
     estimatedTimeMin: new FormControl<number | null>(null, {
-      validators: [Validators.required, Validators.min(1)],
+      validators: [Validators.required, Validators.pattern(/^\d+$/), Validators.min(1)],
     }),
     imageFile: new FormControl('', { nonNullable: true }),
   });
