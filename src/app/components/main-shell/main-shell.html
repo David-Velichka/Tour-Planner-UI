@@ -2,12 +2,22 @@
   <div class="top-bar-left">Tourplanner</div>
 
   <div class="top-bar-center">
-    <input type="text" placeholder="Search..." disabled />
+    <input
+      type="text"
+      placeholder="Search tours and logs..."
+      [value]="searchTerm()"
+      (input)="onSearchInput($event)" />
   </div>
 
   <div class="top-bar-right">
-    <button type="button" disabled>Import</button>
-    <button type="button" disabled>Export</button>
+    <button type="button" (click)="openImportDialog()">Import</button>
+    <button type="button" (click)="onExport()">Export</button>
+    <input
+      #importFileInput
+      type="file"
+      accept=".json,application/json"
+      class="import-file-input"
+      (change)="onImportFileSelected($event)" />
     <button type="button" (click)="onLogout()">Logout</button>
   </div>
 </header>
@@ -20,7 +30,7 @@
     </div>
 
     <app-tour-list
-      [tours]="tours()"
+      [tours]="filteredTours()"
       (tourSelected)="onTourSelected($event)"
       [selectedTourId]="selectedTour()?.id"></app-tour-list>
   </aside>
