@@ -95,6 +95,10 @@
   color: #ffffff;
 }
 
+.import-file-input {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .layout-wrapper {
     flex-direction: column;

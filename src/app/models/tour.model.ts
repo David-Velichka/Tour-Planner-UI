@@ -14,5 +14,6 @@ export interface Tour {
   transportType: TransportType;
   distanceKm: number;
   estimatedTimeMin: number;
+  routeGeometry?: string;
   imageFilePath?: string;
 }

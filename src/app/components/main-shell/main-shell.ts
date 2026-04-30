@@ -463,6 +463,7 @@ export class MainShell {
       transportType: rawTransportType,
       distanceKm: this.readRequiredNumber(rawTour, 'distanceKm'),
       estimatedTimeMin: this.readRequiredNumber(rawTour, 'estimatedTimeMin'),
+      routeGeometry: this.readOptionalString(rawTour, 'routeGeometry'),
       imageFilePath: this.readOptionalString(rawTour, 'imageFilePath'),
     };
   }
