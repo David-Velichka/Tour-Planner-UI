@@ -1,58 +1,78 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 
-type UserRecord = {
+type AuthResponse = {
+  userId: number;
   username: string;
-  password: string;
 };
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  // Saved only in memory for now. (intermediate hand-in)
-  private readonly users = signal<UserRecord[]>([
-    { username: 'asdf', password: 'asdf' },
-  ]);
-  private readonly currentUser = signal<string | undefined>(undefined);
+  private readonly STORAGE_KEY = 'auth_user';
+  private readonly http = inject(HttpClient);
+  private readonly authBaseUrl = 'http://localhost:8080/api/auth';
+  // Initialize from localStorage so state survives page reload and tab duplication
+  private readonly currentUser = signal<AuthResponse | undefined>(this.loadFromStorage());
 
   private readonly loggedIn = computed(() => this.currentUser() !== undefined);
 
-  register(username: string, password: string): boolean {
+  constructor() {
+    // Sync auth state across tabs: when another tab logs out or in, update this tab's signal
+    window.addEventListener('storage', (event: StorageEvent) => {
+      if (event.key === this.STORAGE_KEY) {
+        this.currentUser.set(event.newValue ? this.parseUser(event.newValue) : undefined);
+      }
+    });
+  }
+
+  async register(username: string, password: string): Promise<string | null> {
     const normalizedUsername = username.trim();
 
     if (!normalizedUsername || !password) {
-      return false;
+      return 'Username and password are required.';
     }
 
-    const userExists = this.users().some((user) => user.username === normalizedUsername);
-    if (userExists) {
-      return false;
+    try {
+      await firstValueFrom(
+        this.http.post<AuthResponse>(`${this.authBaseUrl}/register`, {
+          username: normalizedUsername,
+          password,
+        })
+      );
+      return null;
+    } catch (error) {
+      return this.readErrorMessage(error) ?? 'Registration failed.';
     }
-
-    this.users.update((currentUsers) => [
-      ...currentUsers,
-      { username: normalizedUsername, password },
-    ]);
-    return true;
   }
 
-  login(username: string, password: string): boolean {
+  async login(username: string, password: string): Promise<string | null> {
     const normalizedUsername = username.trim();
-    const user = this.users().find(
-      (existingUser) =>
-        existingUser.username === normalizedUsername && existingUser.password === password
-    );
 
-    if (!user) {
-      return false;
+    if (!normalizedUsername || !password) {
+      return 'Username and password are required.';
     }
 
-    this.currentUser.set(user.username);
-    return true;
+    try {
+      const response = await firstValueFrom(
+        this.http.post<AuthResponse>(`${this.authBaseUrl}/login`, {
+          username: normalizedUsername,
+          password,
+        })
+      );
+      this.currentUser.set(response);
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(response));
+      return null;
+    } catch (error) {
+      return this.readErrorMessage(error) ?? 'Login failed.';
+    }
   }
 
   logout(): void {
     this.currentUser.set(undefined);
+    localStorage.removeItem(this.STORAGE_KEY);
   }
 
   isLoggedIn(): boolean {
@@ -60,6 +80,41 @@ export class AuthService {
   }
 
   currentUsername(): string | undefined {
-    return this.currentUser();
+    return this.currentUser()?.username;
+  }
+
+  private loadFromStorage(): AuthResponse | undefined {
+    const stored = localStorage.getItem(this.STORAGE_KEY);
+    return stored ? this.parseUser(stored) : undefined;
+  }
+
+  // Validates shape to avoid accepting malformed or tampered storage data
+  private parseUser(json: string): AuthResponse | undefined {
+    try {
+      const parsed = JSON.parse(json);
+      if (typeof parsed.userId === 'number' && typeof parsed.username === 'string') {
+        return { userId: parsed.userId, username: parsed.username };
+      }
+    } catch {
+      // ignore invalid JSON
+    }
+    return undefined;
+  }
+
+  private readErrorMessage(error: unknown): string | null {
+    if (!(error instanceof HttpErrorResponse)) {
+      return null;
+    }
+
+    if (typeof error.error === 'string' && error.error.trim()) {
+      return error.error;
+    }
+
+    const body = error.error as { message?: string } | null;
+    if (body && typeof body.message === 'string' && body.message.trim()) {
+      return body.message;
+    }
+
+    return null;
   }
 }

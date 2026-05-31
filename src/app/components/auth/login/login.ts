@@ -20,7 +20,7 @@ export class Login {
 
   errorMessage = '';
 
-  onLogin(): void {
+  async onLogin(): Promise<void> {
     this.errorMessage = '';
 
     if (this.loginForm.invalid) {
@@ -29,14 +29,14 @@ export class Login {
     }
 
     const { username, password } = this.loginForm.getRawValue();
-    const loginSuccessful = this.authService.login(username, password);
+    const errorMessage = await this.authService.login(username, password);
 
-    if (loginSuccessful) {
+    if (!errorMessage) {
       this.router.navigate(['/app']);
       return;
     }
 
-    this.errorMessage = 'Invalid username or password.';
+    this.errorMessage = errorMessage;
   }
  
   goToRegister(): void {

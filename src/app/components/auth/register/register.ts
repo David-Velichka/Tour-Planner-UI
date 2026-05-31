@@ -35,7 +35,7 @@ export class Register {
 
   errorMessage = '';
 
-  onRegister(): void {
+  async onRegister(): Promise<void> {
     this.errorMessage = '';
 
     if (this.registerForm.invalid) {
@@ -49,14 +49,14 @@ export class Register {
     }
 
     const { username, password } = this.registerForm.getRawValue();
-    const registrationSuccessful = this.authService.register(username, password);
+    const errorMessage = await this.authService.register(username, password);
 
-    if (registrationSuccessful) {
+    if (!errorMessage) {
       this.router.navigate(['/login']);
       return;
     }
 
-    this.errorMessage = 'Invalid username or password.';
+    this.errorMessage = errorMessage;
   }
 
   goToLogin(): void {
