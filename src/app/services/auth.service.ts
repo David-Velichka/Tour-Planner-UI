@@ -83,6 +83,10 @@ export class AuthService {
     return this.currentUser()?.username;
   }
 
+  currentUserId(): number | undefined {
+    return this.currentUser()?.userId;
+  }
+
   private loadFromStorage(): AuthResponse | undefined {
     const stored = localStorage.getItem(this.STORAGE_KEY);
     return stored ? this.parseUser(stored) : undefined;

@@ -10,7 +10,7 @@ import { Tour } from '../../models/tour.model';
 export class TourListComponent {
   readonly tourSelected = output<Tour>();
   readonly tours = input<Tour[]>([]);
-  readonly selectedTourId = input<string | undefined>(undefined);
+  readonly selectedTourId = input<number | undefined>(undefined);
 
   selectTour(tour: Tour): void {
     this.tourSelected.emit(tour);

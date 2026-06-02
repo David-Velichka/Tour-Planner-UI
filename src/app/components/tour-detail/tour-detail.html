@@ -15,6 +15,8 @@
 			<app-attribute-field label="Distance (km)" [value]="tour()!.distanceKm" />
 			<app-attribute-field label="Estimated Time (min)" [value]="tour()!.estimatedTimeMin" />
 			<app-attribute-field label="Transport Type" [value]="tour()!.transportType" />
+			<app-attribute-field label="Popularity (logs)" [value]="tour()!.popularity" />
+			<app-attribute-field label="Child Friendly" [value]="tour()!.childFriendliness" />
 		</div>
 
 		@if (imagePath()) {

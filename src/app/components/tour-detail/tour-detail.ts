@@ -16,11 +16,6 @@ import { TourLog } from '../../models/tour-log.model';
 import { TourLogList } from '../tour-log-list/tour-log-list';
 import { AttributeField } from '../shared/attribute-field/attribute-field';
 
-interface NominatimResult {
-  lat: string;
-  lon: string;
-}
-
 @Component({
   selector: 'app-tour-detail',
   imports: [TourLogList, AttributeField],
@@ -37,9 +32,6 @@ export class TourDetail {
   private map: L.Map | undefined;
   private readonly defaultCenter: L.LatLngTuple = [48.2082, 16.3738];
   private routeLayer: L.LayerGroup | undefined;
-  private geocodeRequestId = 0;
-  private readonly coordinateCache = new Map<string, L.LatLngTuple>();
-
   readonly tour = input<Tour | undefined>();
   readonly logs = input<TourLog[]>([]);
   readonly addLogRequested = output<void>();
@@ -87,7 +79,7 @@ export class TourDetail {
         return;
       }
 
-      void this.renderTourOnMap(currentTour);
+      this.renderTourOnMap(currentTour);
     });
 
     this.destroyRef.onDestroy(() => {
@@ -157,9 +149,8 @@ export class TourDetail {
     this.mapError.set(undefined);
   }
 
-  private async renderTourOnMap(tour: Tour): Promise<void> {
-    const currentRequestId = ++this.geocodeRequestId;
-
+  // Draw the route on the map using the backend-provided routeGeometry (ORS coordinates).
+  private renderTourOnMap(tour: Tour): void {
     if (!this.map || !this.routeLayer) {
       return;
     }
@@ -167,114 +158,47 @@ export class TourDetail {
     this.routeLayer.clearLayers();
     this.mapError.set(undefined);
 
-    const fromCoordinate = await this.resolveCoordinate(tour.from);
-
-    if (currentRequestId !== this.geocodeRequestId || !this.map || !this.routeLayer) {
-      return;
-    }
-
-    const toCoordinate = await this.resolveCoordinate(tour.to);
-
-    if (currentRequestId !== this.geocodeRequestId || !this.map || !this.routeLayer) {
-      return;
-    }
-
-    if (fromCoordinate && toCoordinate) {
-      L.polyline([fromCoordinate, toCoordinate], {
-        color: '#1d4ed8',
-        weight: 4,
-      }).addTo(this.routeLayer);
-
-      L.circleMarker(fromCoordinate, {
-        color: '#15803d',
-        fillColor: '#15803d',
-        fillOpacity: 1,
-        radius: 6,
-      })
-        .addTo(this.routeLayer)
-        .bindPopup(`From: ${tour.from}`);
-
-      L.circleMarker(toCoordinate, {
-        color: '#b91c1c',
-        fillColor: '#b91c1c',
-        fillOpacity: 1,
-        radius: 6,
-      })
-        .addTo(this.routeLayer)
-        .bindPopup(`To: ${tour.to}`);
-
-      this.map.fitBounds(L.latLngBounds([fromCoordinate, toCoordinate]), {
-        padding: [30, 30],
-      });
+    if (!tour.routeGeometry) {
+      this.map.setView(this.defaultCenter, 10);
+      this.mapError.set('Route data not available.');
       this.map.invalidateSize();
       return;
     }
 
-    const fallbackCoordinate = fromCoordinate ?? toCoordinate;
-
-    if (fallbackCoordinate) {
-      L.circleMarker(fallbackCoordinate, {
-        color: '#1d4ed8',
-        fillColor: '#1d4ed8',
-        fillOpacity: 1,
-        radius: 6,
-      })
-        .addTo(this.routeLayer)
-        .bindPopup(fromCoordinate ? `From: ${tour.from}` : `To: ${tour.to}`);
-
-      this.map.setView(fallbackCoordinate, 12);
-      this.mapError.set('Only one location could be resolved on the map.');
-      this.map.invalidateSize();
-      return;
-    }
-
-    this.map.setView(this.defaultCenter, 10);
-    this.mapError.set('The selected locations could not be resolved on the map.');
-    this.map.invalidateSize();
-  }
-
-  private async resolveCoordinate(locationText: string): Promise<L.LatLngTuple | undefined> {
-    const normalizedLocation = locationText.trim().toLowerCase();
-
-    if (!normalizedLocation) {
-      return undefined;
-    }
-
-    const cachedCoordinate = this.coordinateCache.get(normalizedLocation);
-
-    if (cachedCoordinate) {
-      return cachedCoordinate;
-    }
+    let latLngs: L.LatLngTuple[];
 
     try {
-      const query = encodeURIComponent(locationText.trim());
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${query}`
-      );
-
-      if (!response.ok) {
-        return undefined;
-      }
-
-      const results = (await response.json()) as NominatimResult[];
-      const firstResult = results[0];
-
-      if (!firstResult) {
-        return undefined;
-      }
-
-      const latitude = Number.parseFloat(firstResult.lat);
-      const longitude = Number.parseFloat(firstResult.lon);
-
-      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-        return undefined;
-      }
-
-      const coordinate: L.LatLngTuple = [latitude, longitude];
-      this.coordinateCache.set(normalizedLocation, coordinate);
-      return coordinate;
+      // Backend stores geometry as [[lon,lat],...]; Leaflet needs [lat,lon].
+      const coords = JSON.parse(tour.routeGeometry) as [number, number][];
+      latLngs = coords.map(([lon, lat]) => [lat, lon] as L.LatLngTuple);
     } catch {
-      return undefined;
+      this.map.setView(this.defaultCenter, 10);
+      this.mapError.set('Route data could not be loaded.');
+      this.map.invalidateSize();
+      return;
     }
+
+    if (latLngs.length === 0) {
+      this.map.setView(this.defaultCenter, 10);
+      this.mapError.set('Route data is empty.');
+      this.map.invalidateSize();
+      return;
+    }
+
+    L.polyline(latLngs, { color: '#1d4ed8', weight: 4 }).addTo(this.routeLayer);
+
+    const startPoint = latLngs[0];
+    const endPoint = latLngs[latLngs.length - 1];
+
+    L.circleMarker(startPoint, { color: '#15803d', fillColor: '#15803d', fillOpacity: 1, radius: 6 })
+      .addTo(this.routeLayer)
+      .bindPopup(`From: ${tour.from}`);
+
+    L.circleMarker(endPoint, { color: '#b91c1c', fillColor: '#b91c1c', fillOpacity: 1, radius: 6 })
+      .addTo(this.routeLayer)
+      .bindPopup(`To: ${tour.to}`);
+
+    this.map.fitBounds(L.latLngBounds(latLngs), { padding: [30, 30] });
+    this.map.invalidateSize();
   }
 }

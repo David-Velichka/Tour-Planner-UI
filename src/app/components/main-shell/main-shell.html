@@ -36,6 +36,9 @@
   </aside>
 
   <main class="main-content">
+    @if (apiError()) {
+      <p class="api-error">{{ apiError() }}</p>
+    }
     @if (showCreateTourForm()) {
       <section class="form-section">
         <app-tour-form
@@ -68,7 +71,7 @@
       <section class="form-section">
         <app-tour-log-form
           [log]="undefined"
-          [tourId]="selectedTour()?.id ?? ''"
+          [tourId]="selectedTour()?.id"
           (logSaved)="onTourLogSaved($event)"
           (cancelled)="onCreateTourLogCancelled()"></app-tour-log-form>
       </section>
@@ -78,7 +81,7 @@
       <section class="form-section">
         <app-tour-log-form
           [log]="editingTourLog()"
-          [tourId]="selectedTour()?.id ?? ''"
+          [tourId]="selectedTour()?.id"
           (logSaved)="onEditTourLogSaved($event)"
           (cancelled)="onEditTourLogCancelled()"></app-tour-log-form>
       </section>

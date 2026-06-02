@@ -1,14 +1,16 @@
-import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { TourDetail } from '../tour-detail/tour-detail';
 import { TourListComponent } from '../tour-list/tour-list';
 import { AuthService } from '../../services/auth.service';
+import { TourService, TourFormData } from '../../services/tour.service';
+import { TourLogService, TourLogFormData } from '../../services/tour-log.service';
 import { Tour, TransportType } from '../../models/tour.model';
 import { TourLog } from '../../models/tour-log.model';
 import { TourForm } from '../tours/tour-form/tour-form';
 import { TourLogForm } from '../tour-logs/tour-log-form/tour-log-form';
 
-interface TourDataExport {
+type TourDataExport = {
   version: number;
   exportedAt: string;
   tours: Tour[];
@@ -23,151 +25,92 @@ interface TourDataExport {
 })
 export class MainShell {
   private readonly authService = inject(AuthService);
+  private readonly tourService = inject(TourService);
+  private readonly tourLogService = inject(TourLogService);
   private readonly router = inject(Router);
   private readonly importFileInput = viewChild<ElementRef<HTMLInputElement>>('importFileInput');
 
-  readonly tours = signal<Tour[]>([
-    {
-      id: 'tour-1',
-      name: 'Vienna City Bike Tour',
-      description: 'A relaxed bike ride through central Vienna and along the canal.',
-      from: 'Stephansplatz',
-      to: 'Prater Hauptallee',
-      transportType: TransportType.BIKE,
-      distanceKm: 14.2,
-      estimatedTimeMin: 75,
-      imageFilePath: 'test_bike.png',
-    },
-    {
-      id: 'tour-2',
-      name: 'Alpine Hike',
-      description: 'A mountain trail with steady climbs and a scenic summit view.',
-      from: 'Innsbruck',
-      to: 'Seegrube',
-      transportType: TransportType.HIKE,
-      distanceKm: 11.8,
-      estimatedTimeMin: 240,
-      imageFilePath: 'test_hike.png',
-    },
-    {
-      id: 'tour-3',
-      name: 'Danube Running Trail',
-      description: 'A flat running route following the Danube for an easy training session.',
-      from: 'Tulln',
-      to: 'Krems',
-      transportType: TransportType.RUNNING,
-      distanceKm: 9.5,
-      estimatedTimeMin: 52,
-    },
-  ]);
+  readonly tours = signal<Tour[]>([]);
   readonly selectedTour = signal<Tour | undefined>(undefined);
   readonly showCreateTourForm = signal(false);
   readonly editingTour = signal<Tour | undefined>(undefined);
   readonly tourToDelete = signal<Tour | undefined>(undefined);
   readonly searchTerm = signal('');
-  readonly filteredTours = computed(() => {
-    const normalizedSearchTerm = this.searchTerm().trim().toLowerCase();
-    const currentTourLogs = this.tourLogs();
-
-    if (!normalizedSearchTerm) {
-      return this.tours();
-    }
-
-    return this.tours().filter((tour) => {
-      const tourSearchText = [
-        tour.name,
-        tour.description,
-        tour.from,
-        tour.to,
-        tour.transportType,
-        String(tour.distanceKm),
-        String(tour.estimatedTimeMin),
-        tour.imageFilePath ?? '',
-      ]
-        .join(' ')
-        .toLowerCase();
-
-      if (tourSearchText.includes(normalizedSearchTerm)) {
-        return true;
-      }
-
-      const relatedLogSearchText = currentTourLogs
-        .filter((log) => log.tourId === tour.id)
-        .map((log) =>
-          [
-            log.loggedAt,
-            log.comment,
-            String(log.difficulty),
-            String(log.totalDistanceKm),
-            String(log.totalTimeMin),
-            String(log.rating),
-          ].join(' ')
-        )
-        .join(' ')
-        .toLowerCase();
-
-      return relatedLogSearchText.includes(normalizedSearchTerm);
-    });
-  });
+  // filteredTours is updated by backend search or shows all tours when search is empty
+  readonly filteredTours = signal<Tour[]>([]);
   readonly showCreateTourLogForm = signal(false);
   readonly editingTourLog = signal<TourLog | undefined>(undefined);
   readonly tourLogToDelete = signal<TourLog | undefined>(undefined);
+  // Logs for the currently selected tour only
+  readonly tourLogs = signal<TourLog[]>([]);
+  // Error message from API calls (e.g. ORS route failures)
+  readonly apiError = signal<string | undefined>(undefined);
 
-  // hardcoded Tour logs.
-  readonly tourLogs = signal<TourLog[]>([
-    {
-      id: 'log-1',
-      tourId: 'tour-1',
-      loggedAt: '2026-03-01 09:00',
-      comment: 'Great weather, enjoyable ride.',
-      difficulty: 3,
-      totalDistanceKm: 14.2,
-      totalTimeMin: 78,
-      rating: 5,
-    },
-    {
-      id: 'log-2',
-      tourId: 'tour-1',
-      loggedAt: '2026-02-14 10:30',
-      comment: 'Busy streets near the canal.',
-      difficulty: 4,
-      totalDistanceKm: 14.2,
-      totalTimeMin: 82,
-      rating: 4,
-    },
-    {
-      id: 'log-3',
-      tourId: 'tour-1',
-      loggedAt: '2026-01-20 08:15',
-      comment: 'Cold but refreshing.',
-      difficulty: 2,
-      totalDistanceKm: 13.8,
-      totalTimeMin: 70,
-      rating: 4,
-    },
-    {
-      id: 'log-4',
-      tourId: 'tour-2',
-      loggedAt: '2026-02-28 07:00',
-      comment: 'Steep ascent, rewarding view.',
-      difficulty: 8,
-      totalDistanceKm: 11.8,
-      totalTimeMin: 255,
-      rating: 5,
-    },
-    {
-      id: 'log-5',
-      tourId: 'tour-2',
-      loggedAt: '2025-11-10 08:30',
-      comment: 'Muddy trail after rain.',
-      difficulty: 7,
-      totalDistanceKm: 11.5,
-      totalTimeMin: 270,
-      rating: 3,
-    },
-  ]);
+  constructor() {
+    void this.loadTours();
 
-  onTourSelected(tour: Tour): void {
+    // When searchTerm changes: call backend search or reset to full list
+    effect(() => {
+      const query = this.searchTerm().trim();
+      if (!query) {
+        this.filteredTours.set(this.tours());
+        return;
+      }
+      void this.runSearch(query);
+    });
+  }
+
+  private getUserId(): number {
+    const userId = this.authService.currentUserId();
+
+    if (!userId) {
+      void this.router.navigate(['/login']);
+      throw new Error('Not authenticated');
+    }
+
+    return userId;
+  }
+
+  // Extract a user-friendly message from an HTTP error response.
+  private extractErrorMessage(error: unknown, fallback: string): string {
+    if (error && typeof error === 'object') {
+      const httpError = error as { error?: { message?: string } };
+      const message = httpError.error?.message;
+
+      if (typeof message === 'string' && message.trim()) {
+        return message;
+      }
+    }
+
+    return fallback;
+  }
+
+  private async loadTours(): Promise<void> {
+    try {
+      const userId = this.getUserId();
+      const loadedTours = await this.tourService.getTours(userId);
+      this.tours.set(loadedTours);
+      // Sync filtered list unless a search is active
+      if (!this.searchTerm().trim()) {
+        this.filteredTours.set(loadedTours);
+      }
+    } catch (error) {
+      this.apiError.set(this.extractErrorMessage(error, 'Failed to load tours.'));
+    }
+  }
+
+  private async runSearch(query: string): Promise<void> {
+    try {
+      const userId = this.getUserId();
+      const results = await this.tourService.searchTours(userId, query);
+      this.filteredTours.set(results);
+    } catch {
+      // On search error, fall back to full list
+      this.filteredTours.set(this.tours());
+    }
+  }
+
+  async onTourSelected(tour: Tour): Promise<void> {
     const currentEditingTour = this.editingTour();
     const previouslySelectedTourId = this.selectedTour()?.id;
 
@@ -183,6 +126,15 @@ export class MainShell {
     }
 
     this.selectedTour.set(tour);
+    this.apiError.set(undefined);
+
+    try {
+      const userId = this.getUserId();
+      const logs = await this.tourLogService.getLogs(userId, tour.id);
+      this.tourLogs.set(logs);
+    } catch {
+      this.tourLogs.set([]);
+    }
   }
 
   onSearchInput(event: Event): void {
@@ -199,14 +151,29 @@ export class MainShell {
     this.showCreateTourForm.set(true);
   }
 
-  onTourSaved(tour: Tour): void {
-    this.tours.update((currentTours) => [...currentTours, tour]);
-    this.selectedTour.set(tour);
-    this.showCreateTourForm.set(false);
+  onTourSaved(data: TourFormData): void {
+    void this.createTour(data);
+  }
+
+  private async createTour(data: TourFormData): Promise<void> {
+    try {
+      const userId = this.getUserId();
+      const createdTour = await this.tourService.createTour(userId, data);
+      this.tours.update((currentTours) => [...currentTours, createdTour]);
+      this.selectedTour.set(createdTour);
+      this.tourLogs.set([]);
+      this.showCreateTourForm.set(false);
+      this.apiError.set(undefined);
+    } catch (error) {
+      this.apiError.set(
+        this.extractErrorMessage(error, 'Failed to create tour. Check that locations are valid.')
+      );
+    }
   }
 
   onCreateCancelled(): void {
     this.showCreateTourForm.set(false);
+    this.apiError.set(undefined);
   }
 
   startEditTour(tour: Tour): void {
@@ -215,23 +182,44 @@ export class MainShell {
     this.tourLogToDelete.set(undefined);
     this.showCreateTourForm.set(false);
     this.tourToDelete.set(undefined);
+    this.apiError.set(undefined);
     this.editingTour.set(tour);
   }
 
-  onEditTourSaved(updatedTour: Tour): void {
-    this.tours.update((currentTours) =>
-      currentTours.map((tour) => (tour.id === updatedTour.id ? updatedTour : tour))
-    );
+  onEditTourSaved(data: TourFormData): void {
+    void this.updateTour(data);
+  }
 
-    if (this.selectedTour()?.id === updatedTour.id) {
-      this.selectedTour.set(updatedTour);
+  private async updateTour(data: TourFormData): Promise<void> {
+    const tourBeingEdited = this.editingTour();
+
+    if (!tourBeingEdited) {
+      return;
     }
 
-    this.editingTour.set(undefined);
+    try {
+      const userId = this.getUserId();
+      const updatedTour = await this.tourService.updateTour(userId, tourBeingEdited.id, data);
+      this.tours.update((currentTours) =>
+        currentTours.map((t) => (t.id === updatedTour.id ? updatedTour : t))
+      );
+
+      if (this.selectedTour()?.id === updatedTour.id) {
+        this.selectedTour.set(updatedTour);
+      }
+
+      this.editingTour.set(undefined);
+      this.apiError.set(undefined);
+    } catch (error) {
+      this.apiError.set(
+        this.extractErrorMessage(error, 'Failed to update tour. Check that locations are valid.')
+      );
+    }
   }
 
   onEditCancelled(): void {
     this.editingTour.set(undefined);
+    this.apiError.set(undefined);
   }
 
   startDeleteTour(tour: Tour): void {
@@ -241,31 +229,41 @@ export class MainShell {
     this.showCreateTourForm.set(false);
     this.editingTour.set(undefined);
     this.tourToDelete.set(tour);
+    this.apiError.set(undefined);
   }
 
   confirmDeleteTour(): void {
+    void this.deleteTour();
+  }
+
+  private async deleteTour(): Promise<void> {
     const pendingDeleteTour = this.tourToDelete();
 
     if (!pendingDeleteTour) {
       return;
     }
 
-    this.tours.update((currentTours) =>
-      currentTours.filter((tour) => tour.id !== pendingDeleteTour.id)
-    );
+    try {
+      const userId = this.getUserId();
+      await this.tourService.deleteTour(userId, pendingDeleteTour.id);
+      this.tours.update((currentTours) =>
+        currentTours.filter((t) => t.id !== pendingDeleteTour.id)
+      );
 
-    this.tourLogs.update((currentLogs) =>
-      currentLogs.filter((log) => log.tourId !== pendingDeleteTour.id)
-    );
+      if (this.selectedTour()?.id === pendingDeleteTour.id) {
+        this.selectedTour.set(undefined);
+        this.tourLogs.set([]);
+        this.showCreateTourLogForm.set(false);
+        this.editingTourLog.set(undefined);
+        this.tourLogToDelete.set(undefined);
+      }
 
-    if (this.selectedTour()?.id === pendingDeleteTour.id) {
-      this.selectedTour.set(undefined);
-      this.showCreateTourLogForm.set(false);
-      this.editingTourLog.set(undefined);
-      this.tourLogToDelete.set(undefined);
+      this.tourToDelete.set(undefined);
+      this.apiError.set(undefined);
+    } catch (error) {
+      this.apiError.set(this.extractErrorMessage(error, 'Failed to delete tour.'));
+      this.tourToDelete.set(undefined);
     }
-
-    this.tourToDelete.set(undefined);
   }
 
   cancelDeleteTour(): void {
@@ -287,21 +285,26 @@ export class MainShell {
     this.showCreateTourLogForm.set(true);
   }
 
-  onTourLogSaved(log: TourLog): void {
+  onTourLogSaved(data: TourLogFormData): void {
+    void this.createLog(data);
+  }
+
+  private async createLog(data: TourLogFormData): Promise<void> {
     const currentSelectedTour = this.selectedTour();
 
     if (!currentSelectedTour) {
       return;
     }
 
-    const logToSave: TourLog = {
-      ...log, // ...log contains all form values except id and tourId which will get set here.
-      id: log.id || `log-${Date.now()}`,
-      tourId: currentSelectedTour.id,
-    };
-
-    this.tourLogs.update((currentLogs) => [...currentLogs, logToSave]);
-    this.showCreateTourLogForm.set(false);
+    try {
+      const userId = this.getUserId();
+      const createdLog = await this.tourLogService.createLog(userId, currentSelectedTour.id, data);
+      this.tourLogs.update((currentLogs) => [...currentLogs, createdLog]);
+      this.showCreateTourLogForm.set(false);
+      this.apiError.set(undefined);
+    } catch (error) {
+      this.apiError.set(this.extractErrorMessage(error, 'Failed to create tour log.'));
+    }
   }
 
   onCreateTourLogCancelled(): void {
@@ -320,15 +323,32 @@ export class MainShell {
     this.tourToDelete.set(undefined);
     this.showCreateTourLogForm.set(false);
     this.tourLogToDelete.set(undefined);
+    this.apiError.set(undefined);
     this.editingTourLog.set(log);
   }
 
-  onEditTourLogSaved(updatedLog: TourLog): void {
-    this.tourLogs.update((currentLogs) =>
-      currentLogs.map((log) => (log.id === updatedLog.id ? updatedLog : log))
-    );
+  onEditTourLogSaved(data: TourLogFormData): void {
+    void this.updateLog(data);
+  }
 
-    this.editingTourLog.set(undefined);
+  private async updateLog(data: TourLogFormData): Promise<void> {
+    const logBeingEdited = this.editingTourLog();
+
+    if (!logBeingEdited) {
+      return;
+    }
+
+    try {
+      const userId = this.getUserId();
+      const updatedLog = await this.tourLogService.updateLog(userId, logBeingEdited.id, data);
+      this.tourLogs.update((currentLogs) =>
+        currentLogs.map((l) => (l.id === updatedLog.id ? updatedLog : l))
+      );
+      this.editingTourLog.set(undefined);
+      this.apiError.set(undefined);
+    } catch (error) {
+      this.apiError.set(this.extractErrorMessage(error, 'Failed to update tour log.'));
+    }
   }
 
   onEditTourLogCancelled(): void {
@@ -348,24 +368,37 @@ export class MainShell {
     this.showCreateTourLogForm.set(false);
     this.editingTourLog.set(undefined);
     this.tourLogToDelete.set(log);
+    this.apiError.set(undefined);
   }
 
   confirmDeleteTourLog(): void {
+    void this.deleteLog();
+  }
+
+  private async deleteLog(): Promise<void> {
     const pendingDeleteLog = this.tourLogToDelete();
 
     if (!pendingDeleteLog) {
       return;
     }
 
-    this.tourLogs.update((currentLogs) =>
-      currentLogs.filter((log) => log.id !== pendingDeleteLog.id)
-    );
+    try {
+      const userId = this.getUserId();
+      await this.tourLogService.deleteLog(userId, pendingDeleteLog.id);
+      this.tourLogs.update((currentLogs) =>
+        currentLogs.filter((l) => l.id !== pendingDeleteLog.id)
+      );
 
-    if (this.editingTourLog()?.id === pendingDeleteLog.id) {
-      this.editingTourLog.set(undefined);
+      if (this.editingTourLog()?.id === pendingDeleteLog.id) {
+        this.editingTourLog.set(undefined);
+      }
+
+      this.tourLogToDelete.set(undefined);
+      this.apiError.set(undefined);
+    } catch (error) {
+      this.apiError.set(this.extractErrorMessage(error, 'Failed to delete tour log.'));
+      this.tourLogToDelete.set(undefined);
     }
-
-    this.tourLogToDelete.set(undefined);
   }
 
   cancelDeleteTourLog(): void {
@@ -455,7 +488,7 @@ export class MainShell {
     }
 
     return {
-      id: this.readRequiredString(rawTour, 'id'),
+      id: this.readRequiredNumber(rawTour, 'id'),
       name: this.readRequiredString(rawTour, 'name'),
       description: this.readRequiredString(rawTour, 'description'),
       from: this.readRequiredString(rawTour, 'from'),
@@ -465,6 +498,9 @@ export class MainShell {
       estimatedTimeMin: this.readRequiredNumber(rawTour, 'estimatedTimeMin'),
       routeGeometry: this.readOptionalString(rawTour, 'routeGeometry'),
       imageFilePath: this.readOptionalString(rawTour, 'imageFilePath'),
+      // computed fields are not stored in export; defaults used until backend reload
+      popularity: 0,
+      childFriendliness: 'Unknown',
     };
   }
 
@@ -474,8 +510,8 @@ export class MainShell {
     }
 
     return {
-      id: this.readRequiredString(rawTourLog, 'id'),
-      tourId: this.readRequiredString(rawTourLog, 'tourId'),
+      id: this.readRequiredNumber(rawTourLog, 'id'),
+      tourId: this.readRequiredNumber(rawTourLog, 'tourId'),
       loggedAt: this.readRequiredString(rawTourLog, 'loggedAt'),
       comment: this.readRequiredString(rawTourLog, 'comment'),
       difficulty: this.readRequiredNumber(rawTourLog, 'difficulty'),

@@ -6,7 +6,7 @@ export enum TransportType {
 }
 
 export interface Tour {
-  id: string;
+  id: number;
   name: string;
   description: string;
   from: string;
@@ -16,4 +16,6 @@ export interface Tour {
   estimatedTimeMin: number;
   routeGeometry?: string;
   imageFilePath?: string;
+  popularity: number;
+  childFriendliness: string;
 }

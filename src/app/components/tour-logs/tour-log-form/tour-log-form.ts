@@ -8,6 +8,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { TourLog } from '../../../models/tour-log.model';
+import { TourLogFormData } from '../../../services/tour-log.service';
 
 function visibleCharactersValidator(control: AbstractControl): ValidationErrors | null {
   const value = control.value;
@@ -44,9 +45,9 @@ function validDateValidator(control: AbstractControl): ValidationErrors | null {
 })
 export class TourLogForm {
   readonly log = input<TourLog | undefined>(undefined);
-  readonly tourId = input<string>('');
+  readonly tourId = input<number | undefined>(undefined);
 
-  readonly logSaved = output<TourLog>();
+  readonly logSaved = output<TourLogFormData>();
   readonly cancelled = output<void>();
 
   readonly isEditMode = computed(() => this.log() !== undefined);
@@ -119,17 +120,13 @@ export class TourLogForm {
       return;
     }
 
-    const currentLog = this.log();
-    const formValue = this.logForm.getRawValue();
-    const activeTourId = this.tourId().trim() || currentLog?.tourId || '';
-
-    if (!activeTourId) {
+    if (this.tourId() === undefined && !this.log()) {
       return;
     }
 
-    const logToSave: TourLog = {
-      id: currentLog?.id ?? this.createLogId(),
-      tourId: activeTourId,
+    const formValue = this.logForm.getRawValue();
+
+    const data: TourLogFormData = {
       loggedAt: this.fromDateTimeLocal(formValue.loggedAt),
       comment: formValue.comment.trim(),
       difficulty: formValue.difficulty ?? 1,
@@ -138,7 +135,7 @@ export class TourLogForm {
       rating: formValue.rating ?? 1,
     };
 
-    this.logSaved.emit(logToSave);
+    this.logSaved.emit(data);
   }
 
   onCancel(): void {
@@ -160,9 +157,9 @@ export class TourLogForm {
     return trimmedValue.replace(' ', 'T').slice(0, 16);
   }
 
-  // Convert datetime-local value back to  display format.
+  // Keep the ISO T separator so the backend can parse with LocalDateTime.parse.
   private fromDateTimeLocal(value: string): string {
-    return value.trim().replace('T', ' ');
+    return value.trim();
   }
 
   private createLogId(): string {

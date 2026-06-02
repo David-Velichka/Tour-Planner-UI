@@ -99,6 +99,15 @@
   display: none;
 }
 
+.api-error {
+  background-color: #fff5f5;
+  border: 1px solid #f2b6b6;
+  border-radius: 4px;
+  color: #b91c1c;
+  margin-bottom: 1rem;
+  padding: 0.5rem 0.75rem;
+}
+
 @media (max-width: 768px) {
   .layout-wrapper {
     flex-direction: column;

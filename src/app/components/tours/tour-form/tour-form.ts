@@ -8,6 +8,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { Tour, TransportType } from '../../../models/tour.model';
+import { TourFormData } from '../../../services/tour.service';
 
 function visibleCharactersValidator(control: AbstractControl): ValidationErrors | null {
   const value = control.value;
@@ -41,7 +42,7 @@ function transportTypeValidator(control: AbstractControl): ValidationErrors | nu
 export class TourForm {
   readonly tour = input<Tour | undefined>(undefined);
 
-  readonly tourSaved = output<Tour>();
+  readonly tourSaved = output<TourFormData>();
   readonly cancelled = output<void>();
 
   readonly transportTypes = Object.values(TransportType);
@@ -74,16 +75,6 @@ export class TourForm {
       nonNullable: true,
       validators: [Validators.required, transportTypeValidator],
     }),
-    distanceKm: new FormControl<number | null>(null, {
-      validators: [
-        Validators.required,
-        Validators.pattern(/^\d+(\.\d{1,2})?$/),
-        Validators.min(0.1),
-      ],
-    }),
-    estimatedTimeMin: new FormControl<number | null>(null, {
-      validators: [Validators.required, Validators.pattern(/^\d+$/), Validators.min(1)],
-    }),
     imageFile: new FormControl('', { nonNullable: true }),
   });
 
@@ -98,8 +89,6 @@ export class TourForm {
           from: currentTour.from,
           to: currentTour.to,
           transportType: currentTour.transportType,
-          distanceKm: currentTour.distanceKm,
-          estimatedTimeMin: currentTour.estimatedTimeMin,
           imageFile: '',
         });
         this.selectedImageName.set('');
@@ -110,8 +99,6 @@ export class TourForm {
           from: '',
           to: '',
           transportType: '',
-          distanceKm: null,
-          estimatedTimeMin: null,
           imageFile: '',
         });
         this.selectedImageName.set('');
@@ -146,29 +133,22 @@ export class TourForm {
 
     const currentTour = this.tour();
     const formValue = this.tourForm.getRawValue();
-    // Use selected filename if provided, otherwise preserve existing image reference
+    // Use selected file blob URL if provided, otherwise preserve existing image reference
     const imageFilePath = formValue.imageFile.trim() || currentTour?.imageFilePath || undefined;
 
-    const tourToSave: Tour = {
-      id: currentTour?.id ?? this.createTourId(),
+    const data: TourFormData = {
       name: formValue.name.trim(),
       description: formValue.description.trim(),
       from: formValue.from.trim(),
       to: formValue.to.trim(),
       transportType: formValue.transportType as TransportType,
-      distanceKm: formValue.distanceKm ?? 0,
-      estimatedTimeMin: formValue.estimatedTimeMin ?? 0,
       imageFilePath,
     };
 
-    this.tourSaved.emit(tourToSave);
+    this.tourSaved.emit(data);
   }
 
   onCancel(): void {
     this.cancelled.emit();
-  }
-
-  private createTourId(): string {
-    return `tour-${Date.now()}`;
   }
 }

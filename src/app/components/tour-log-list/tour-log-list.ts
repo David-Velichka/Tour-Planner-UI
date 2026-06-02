@@ -9,7 +9,7 @@ import { TourLog } from '../../models/tour-log.model';
 })
 export class TourLogList {
   // Input: ID of currently selected tour
-  readonly tourId = input<string>('');
+  readonly tourId = input<number | undefined>(undefined);
   // Input: all tour logs (in main-shell)
   readonly logs = input<TourLog[]>([]);
   // Output: Clicking "Add Log" button
@@ -22,7 +22,7 @@ export class TourLogList {
     this.logs().filter(log => log.tourId === this.tourId())
   );
 
-  readonly canAddLog = computed(() => this.tourId().trim().length > 0); // if a tour is selected
+  readonly canAddLog = computed(() => this.tourId() !== undefined);
 
   requestAddLog(): void {
     if (!this.canAddLog()) {

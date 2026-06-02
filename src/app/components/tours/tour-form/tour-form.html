@@ -80,33 +80,6 @@
         }
       </div>
 
-      <div class="form-field">
-        <label for="tour-distance">Distance (km)</label>
-        <input id="tour-distance" type="number" step="0.1" min="0.1" formControlName="distanceKm" />
-        @if (tourForm.controls.distanceKm.touched && tourForm.controls.distanceKm.hasError('required')) {
-          <p class="validation-message">This field is required.</p>
-        }
-        @if (tourForm.controls.distanceKm.touched && tourForm.controls.distanceKm.hasError('pattern') && !tourForm.controls.distanceKm.hasError('min')) {
-          <p class="validation-message">Must be a positive number with up to 2 decimals.</p>
-        }
-        @if (tourForm.controls.distanceKm.touched && tourForm.controls.distanceKm.hasError('min')) {
-          <p class="validation-message">Must be a positive number.</p>
-        }
-      </div>
-
-      <div class="form-field">
-        <label for="tour-estimated-time">Estimated Time (min)</label>
-        <input id="tour-estimated-time" type="number" min="1" formControlName="estimatedTimeMin" />
-        @if (tourForm.controls.estimatedTimeMin.touched && tourForm.controls.estimatedTimeMin.hasError('required')) {
-          <p class="validation-message">This field is required.</p>
-        }
-        @if (tourForm.controls.estimatedTimeMin.touched && tourForm.controls.estimatedTimeMin.hasError('pattern')) {
-          <p class="validation-message">Must be a positive integer.</p>
-        }
-        @if (tourForm.controls.estimatedTimeMin.touched && tourForm.controls.estimatedTimeMin.hasError('min')) {
-          <p class="validation-message">Must be a positive number.</p>
-        }
-      </div>
     </div>
 
     <div class="form-field">
