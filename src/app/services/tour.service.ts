@@ -12,6 +12,7 @@ export interface TourFormData {
   to: string;
   transportType: TransportType;
   imageFilePath?: string;
+  imageFile?: File;
 }
 
 interface TourApiResponse {
@@ -31,6 +32,26 @@ interface TourApiResponse {
 
 interface TourListApiResponse {
   tours: TourApiResponse[];
+}
+
+export interface TourExportDto {
+  name: string;
+  description: string;
+  from: string;
+  to: string;
+  transportType: string;
+  distanceKm: number;
+  estimatedTimeMin: number;
+  routeGeometry: string | null;
+  imageFilePath: string | null;
+  logs: {
+    loggedAt: string;
+    comment: string;
+    difficulty: number;
+    totalDistanceKm: number;
+    totalTimeMin: number;
+    rating: number;
+  }[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -96,5 +117,40 @@ export class TourService {
       })
     );
     return response.tours.map((t) => this.mapTour(t));
+  }
+
+  async exportTours(userId: number): Promise<Blob> {
+    return firstValueFrom(
+      this.http.get('http://localhost:8080/api/export', {
+        headers: this.headers(userId),
+        responseType: 'blob',
+      })
+    );
+  }
+
+  async importTours(userId: number, data: TourExportDto[]): Promise<void> {
+    await firstValueFrom(
+      this.http.post<void>('http://localhost:8080/api/import', { tours: data }, { headers: this.headers(userId) })
+    );
+  }
+
+  async uploadImage(userId: number, file: File): Promise<string> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await firstValueFrom(
+      this.http.post<{ filename: string }>('http://localhost:8080/api/images', formData, {
+        headers: this.headers(userId),
+      })
+    );
+    return response.filename;
+  }
+
+  async getImageBlob(userId: number, imageFilePath: string): Promise<Blob> {
+    return firstValueFrom(
+      this.http.get(`http://localhost:8080/api/images/${imageFilePath.replace(/^\/+/, '')}`, {
+        headers: this.headers(userId),
+        responseType: 'blob',
+      })
+    );
   }
 }

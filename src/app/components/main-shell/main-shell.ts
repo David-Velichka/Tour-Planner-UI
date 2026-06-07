@@ -158,6 +158,9 @@ export class MainShell {
   private async createTour(data: TourFormData): Promise<void> {
     try {
       const userId = this.getUserId();
+      if (data.imageFile) {
+        data.imageFilePath = await this.tourService.uploadImage(userId, data.imageFile);
+      }
       const createdTour = await this.tourService.createTour(userId, data);
       this.tours.update((currentTours) => [...currentTours, createdTour]);
       this.selectedTour.set(createdTour);
@@ -199,6 +202,9 @@ export class MainShell {
 
     try {
       const userId = this.getUserId();
+      if (data.imageFile) {
+        data.imageFilePath = await this.tourService.uploadImage(userId, data.imageFile);
+      }
       const updatedTour = await this.tourService.updateTour(userId, tourBeingEdited.id, data);
       this.tours.update((currentTours) =>
         currentTours.map((t) => (t.id === updatedTour.id ? updatedTour : t))
@@ -405,26 +411,21 @@ export class MainShell {
     this.tourLogToDelete.set(undefined);
   }
 
-  onExport(): void {
-    const exportData: TourDataExport = {
-      version: 1,
-      exportedAt: new Date().toISOString(),
-      tours: this.tours(),
-      tourLogs: this.tourLogs(),
-    };
-
-    const content = JSON.stringify(exportData, null, 2);
-    const blob = new Blob([content], { type: 'application/json' });
-    const downloadUrl = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-
-    link.href = downloadUrl;
-    link.download = `tourplanner-export-${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    URL.revokeObjectURL(downloadUrl);
+  async onExport(): Promise<void> {
+    try {
+      const userId = this.getUserId();
+      const blob = await this.tourService.exportTours(userId);
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `tourplanner-export-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      window.alert('Export failed. Please try again.');
+    }
   }
 
   openImportDialog(): void {
@@ -441,10 +442,15 @@ export class MainShell {
 
     try {
       const fileContent = await selectedFile.text();
-      const importData = this.parseImportData(JSON.parse(fileContent) as unknown);
-      this.applyImportedData(importData);
+      const importData = JSON.parse(fileContent);
+      if (!importData.tours || !Array.isArray(importData.tours)) {
+         throw new Error('Invalid export format');
+      }
+      const userId = this.getUserId();
+      await this.tourService.importTours(userId, importData.tours);
+      await this.loadTours();
       window.alert('Import completed successfully.');
-    } catch {
+    } catch (error) {
       window.alert('Import failed. Please use a valid Tourplanner JSON file.');
     } finally {
       if (fileInput) {
@@ -453,147 +459,7 @@ export class MainShell {
     }
   }
 
-  private parseImportData(rawData: unknown): TourDataExport {
-    if (!this.isRecord(rawData)) {
-      throw new Error('Invalid JSON root');
-    }
 
-    const rawTours = rawData['tours'];
-    const rawTourLogs = rawData['tourLogs'];
-
-    if (!Array.isArray(rawTours) || !Array.isArray(rawTourLogs)) {
-      throw new Error('Missing data arrays');
-    }
-
-    const tours = rawTours.map((tour) => this.parseTour(tour));
-    const tourLogs = rawTourLogs.map((log) => this.parseTourLog(log));
-
-    return {
-      version: 1,
-      exportedAt: new Date().toISOString(),
-      tours,
-      tourLogs,
-    };
-  }
-
-  private parseTour(rawTour: unknown): Tour {
-    if (!this.isRecord(rawTour)) {
-      throw new Error('Invalid tour');
-    }
-
-    const rawTransportType = rawTour['transportType'];
-
-    if (!this.isTransportType(rawTransportType)) {
-      throw new Error('Invalid transport type');
-    }
-
-    return {
-      id: this.readRequiredNumber(rawTour, 'id'),
-      name: this.readRequiredString(rawTour, 'name'),
-      description: this.readRequiredString(rawTour, 'description'),
-      from: this.readRequiredString(rawTour, 'from'),
-      to: this.readRequiredString(rawTour, 'to'),
-      transportType: rawTransportType,
-      distanceKm: this.readRequiredNumber(rawTour, 'distanceKm'),
-      estimatedTimeMin: this.readRequiredNumber(rawTour, 'estimatedTimeMin'),
-      routeGeometry: this.readOptionalString(rawTour, 'routeGeometry'),
-      imageFilePath: this.readOptionalString(rawTour, 'imageFilePath'),
-      // computed fields are not stored in export; defaults used until backend reload
-      popularity: 0,
-      childFriendliness: 'Unknown',
-    };
-  }
-
-  private parseTourLog(rawTourLog: unknown): TourLog {
-    if (!this.isRecord(rawTourLog)) {
-      throw new Error('Invalid log');
-    }
-
-    return {
-      id: this.readRequiredNumber(rawTourLog, 'id'),
-      tourId: this.readRequiredNumber(rawTourLog, 'tourId'),
-      loggedAt: this.readRequiredString(rawTourLog, 'loggedAt'),
-      comment: this.readRequiredString(rawTourLog, 'comment'),
-      difficulty: this.readRequiredNumber(rawTourLog, 'difficulty'),
-      totalDistanceKm: this.readRequiredNumber(rawTourLog, 'totalDistanceKm'),
-      totalTimeMin: this.readRequiredNumber(rawTourLog, 'totalTimeMin'),
-      rating: this.readRequiredNumber(rawTourLog, 'rating'),
-    };
-  }
-
-  private applyImportedData(importData: TourDataExport): void {
-    const currentTours = this.tours();
-    const currentLogs = this.tourLogs();
-
-    const currentTourIds = new Set(currentTours.map((tour) => tour.id));
-    const toursToAdd = importData.tours.filter((tour) => !currentTourIds.has(tour.id));
-    const mergedTours = [...currentTours, ...toursToAdd];
-
-    const mergedTourIds = new Set(mergedTours.map((tour) => tour.id));
-    const currentLogIds = new Set(currentLogs.map((log) => log.id));
-    const logsToAdd = importData.tourLogs.filter(
-      (log) => mergedTourIds.has(log.tourId) && !currentLogIds.has(log.id)
-    );
-
-    this.tours.set(mergedTours);
-    this.tourLogs.set([...currentLogs, ...logsToAdd]);
-
-    this.showCreateTourForm.set(false);
-    this.editingTour.set(undefined);
-    this.tourToDelete.set(undefined);
-    this.showCreateTourLogForm.set(false);
-    this.editingTourLog.set(undefined);
-    this.tourLogToDelete.set(undefined);
-  }
-
-  private isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === 'object' && value !== null;
-  }
-
-  private isTransportType(value: unknown): value is TransportType {
-    return Object.values(TransportType).includes(value as TransportType);
-  }
-
-  private readRequiredString(record: Record<string, unknown>, key: string): string {
-    const rawValue = record[key];
-
-    if (typeof rawValue !== 'string') {
-      throw new Error(`Invalid ${key}`);
-    }
-
-    const trimmedValue = rawValue.trim();
-
-    if (!trimmedValue) {
-      throw new Error(`Missing ${key}`);
-    }
-
-    return trimmedValue;
-  }
-
-  private readOptionalString(record: Record<string, unknown>, key: string): string | undefined {
-    const rawValue = record[key];
-
-    if (rawValue === undefined || rawValue === null) {
-      return undefined;
-    }
-
-    if (typeof rawValue !== 'string') {
-      throw new Error(`Invalid ${key}`);
-    }
-
-    const trimmedValue = rawValue.trim();
-    return trimmedValue || undefined;
-  }
-
-  private readRequiredNumber(record: Record<string, unknown>, key: string): number {
-    const rawValue = record[key];
-
-    if (typeof rawValue !== 'number' || !Number.isFinite(rawValue)) {
-      throw new Error(`Invalid ${key}`);
-    }
-
-    return rawValue;
-  }
 
   onLogout(): void {
     this.authService.logout();

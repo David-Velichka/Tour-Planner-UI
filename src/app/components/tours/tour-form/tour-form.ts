@@ -75,8 +75,14 @@ export class TourForm {
       nonNullable: true,
       validators: [Validators.required, transportTypeValidator],
     }),
-    imageFile: new FormControl('', { nonNullable: true }),
+    imageFile: new FormControl<File | null>(null),
   });
+
+  private getExistingImageName(tour: Tour | undefined): string {
+    if (!tour?.imageFilePath) return '';
+    const parts = tour.imageFilePath.split('_');
+    return parts.length > 1 ? parts.slice(1).join('_') : (tour.imageFilePath.split('/').pop() || '');
+  }
 
   constructor() {
     effect(() => {
@@ -89,9 +95,9 @@ export class TourForm {
           from: currentTour.from,
           to: currentTour.to,
           transportType: currentTour.transportType,
-          imageFile: '',
+          imageFile: null,
         });
-        this.selectedImageName.set('');
+        this.selectedImageName.set(this.getExistingImageName(currentTour));
       } else {
         this.tourForm.reset({
           name: '',
@@ -99,7 +105,7 @@ export class TourForm {
           from: '',
           to: '',
           transportType: '',
-          imageFile: '',
+          imageFile: null,
         });
         this.selectedImageName.set('');
       }
@@ -115,14 +121,13 @@ export class TourForm {
 
     if (selectedFile) {
       const fileName = selectedFile.name.trim();
-      const imageUrl = URL.createObjectURL(selectedFile);
-      this.tourForm.controls.imageFile.setValue(imageUrl);
+      this.tourForm.controls.imageFile.setValue(selectedFile);
       this.selectedImageName.set(fileName);
       return;
     }
 
-    this.tourForm.controls.imageFile.setValue('');
-    this.selectedImageName.set('');
+    this.tourForm.controls.imageFile.setValue(null);
+    this.selectedImageName.set(this.getExistingImageName(this.tour()));
   }
 
   onSave(): void {
@@ -133,8 +138,7 @@ export class TourForm {
 
     const currentTour = this.tour();
     const formValue = this.tourForm.getRawValue();
-    // Use selected file blob URL if provided, otherwise preserve existing image reference
-    const imageFilePath = formValue.imageFile.trim() || currentTour?.imageFilePath || undefined;
+    const imageFilePath = currentTour?.imageFilePath || undefined;
 
     const data: TourFormData = {
       name: formValue.name.trim(),
@@ -143,6 +147,7 @@ export class TourForm {
       to: formValue.to.trim(),
       transportType: formValue.transportType as TransportType,
       imageFilePath,
+      imageFile: formValue.imageFile ?? undefined,
     };
 
     this.tourSaved.emit(data);

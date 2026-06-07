@@ -10,11 +10,15 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import * as L from 'leaflet';
 import { Tour } from '../../models/tour.model';
 import { TourLog } from '../../models/tour-log.model';
 import { TourLogList } from '../tour-log-list/tour-log-list';
 import { AttributeField } from '../shared/attribute-field/attribute-field';
+
+import { TourService } from '../../services/tour.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-tour-detail',
@@ -28,6 +32,9 @@ import { AttributeField } from '../shared/attribute-field/attribute-field';
 export class TourDetail {
   private readonly destroyRef = inject(DestroyRef);
   private readonly mapElementRef = viewChild<ElementRef<HTMLDivElement>>('leafletMap');
+  private readonly tourService = inject(TourService);
+  private readonly authService = inject(AuthService);
+  private readonly sanitizer = inject(DomSanitizer);
 
   private map: L.Map | undefined;
   private readonly defaultCenter: L.LatLngTuple = [48.2082, 16.3738];
@@ -40,29 +47,48 @@ export class TourDetail {
   readonly logEditRequested = output<TourLog>();
   readonly logDeleteRequested = output<TourLog>();
   readonly mapError = signal<string | undefined>(undefined);
+  
+  readonly imageBlobUrl = signal<SafeUrl | undefined>(undefined);
   readonly imagePath = computed(() => {
     const imageFilePath = this.tour()?.imageFilePath?.trim();
-
-    if (!imageFilePath) {
-      return undefined;
-    }
-
-    // absolute path or full URL
-    if (
-      imageFilePath.startsWith('/') ||
-      imageFilePath.startsWith('http') ||
-      imageFilePath.startsWith('blob:') ||
-      imageFilePath.startsWith('data:')
-    ) {
+    if (!imageFilePath) return undefined;
+    if (imageFilePath.startsWith('http') || imageFilePath.startsWith('blob:') || imageFilePath.startsWith('data:')) {
       return imageFilePath;
     }
-
-    // Relative path
-    return `/${imageFilePath}`;
+    return this.imageBlobUrl();
   });
   readonly imageAlt = computed(() => `Tour image for ${this.tour()?.name ?? 'selected tour'}`);
 
   constructor() {
+    effect((onCleanup) => {
+      const currentTour = this.tour();
+      const imageFilePath = currentTour?.imageFilePath?.trim();
+      
+      if (imageFilePath && !imageFilePath.startsWith('http') && !imageFilePath.startsWith('blob:') && !imageFilePath.startsWith('data:')) {
+        const userId = this.authService.currentUserId();
+        if (userId) {
+          let objectUrl: string | undefined = undefined;
+          let isCleanedUp = false;
+          
+          this.tourService.getImageBlob(userId, imageFilePath).then(blob => {
+            if (isCleanedUp) return;
+            objectUrl = URL.createObjectURL(blob);
+            this.imageBlobUrl.set(this.sanitizer.bypassSecurityTrustUrl(objectUrl));
+          }).catch(err => console.error('Failed to load image blob', err));
+
+          onCleanup(() => {
+            isCleanedUp = true;
+            if (objectUrl) {
+              URL.revokeObjectURL(objectUrl);
+            }
+            this.imageBlobUrl.set(undefined);
+          });
+        }
+      } else {
+        this.imageBlobUrl.set(undefined);
+      }
+    });
+
     effect(() => {
       const mapElement = this.mapElementRef();
 
