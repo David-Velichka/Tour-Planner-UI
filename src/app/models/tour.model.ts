@@ -18,4 +18,7 @@ export interface Tour {
   imageFilePath?: string;
   popularity: number;
   childFriendliness: string;
+  elevationProfile?: string;  // 3D coordinates [[lon,lat,elev],...] as JSON string
+  ascentM?: number;           // total ascent in meters
+  descentM?: number;          // total descent in meters
 }

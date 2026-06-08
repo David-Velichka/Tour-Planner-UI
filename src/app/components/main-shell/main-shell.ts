@@ -93,6 +93,14 @@ export class MainShell {
       // Sync filtered list unless a search is active
       if (!this.searchTerm().trim()) {
         this.filteredTours.set(loadedTours);
+      } else {
+        void this.runSearch(this.searchTerm().trim());
+      }
+      // update currently selected tour when something changes
+      const currentSelected = this.selectedTour();
+      if (currentSelected) {
+        const updated = loadedTours.find((t) => t.id === currentSelected.id);
+        this.selectedTour.set(updated ?? undefined);
       }
     } catch (error) {
       this.apiError.set(this.extractErrorMessage(error, 'Failed to load tours.'));
@@ -306,6 +314,7 @@ export class MainShell {
       const userId = this.getUserId();
       const createdLog = await this.tourLogService.createLog(userId, currentSelectedTour.id, data);
       this.tourLogs.update((currentLogs) => [...currentLogs, createdLog]);
+      await this.loadTours();
       this.showCreateTourLogForm.set(false);
       this.apiError.set(undefined);
     } catch (error) {
@@ -350,6 +359,7 @@ export class MainShell {
       this.tourLogs.update((currentLogs) =>
         currentLogs.map((l) => (l.id === updatedLog.id ? updatedLog : l))
       );
+      await this.loadTours();
       this.editingTourLog.set(undefined);
       this.apiError.set(undefined);
     } catch (error) {
@@ -394,7 +404,7 @@ export class MainShell {
       this.tourLogs.update((currentLogs) =>
         currentLogs.filter((l) => l.id !== pendingDeleteLog.id)
       );
-
+      await this.loadTours();
       if (this.editingTourLog()?.id === pendingDeleteLog.id) {
         this.editingTourLog.set(undefined);
       }
@@ -444,7 +454,7 @@ export class MainShell {
       const fileContent = await selectedFile.text();
       const importData = JSON.parse(fileContent);
       if (!importData.tours || !Array.isArray(importData.tours)) {
-         throw new Error('Invalid export format');
+        throw new Error('Invalid export format');
       }
       const userId = this.getUserId();
       await this.tourService.importTours(userId, importData.tours);

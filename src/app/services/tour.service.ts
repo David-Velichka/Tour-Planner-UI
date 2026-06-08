@@ -28,6 +28,9 @@ interface TourApiResponse {
   imageFilePath: string | null;
   popularity: number;
   childFriendliness: string;
+  elevationProfile: string | null;
+  ascentM: number | null;
+  descentM: number | null;
 }
 
 interface TourListApiResponse {
@@ -77,6 +80,9 @@ export class TourService {
       imageFilePath: dto.imageFilePath ?? undefined,
       popularity: dto.popularity,
       childFriendliness: dto.childFriendliness,
+      elevationProfile: dto.elevationProfile ?? undefined,
+      ascentM: dto.ascentM ?? undefined,
+      descentM: dto.descentM ?? undefined,
     };
   }
 

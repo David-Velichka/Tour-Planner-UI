@@ -82,6 +82,114 @@
 	margin: 0.5rem 0 0;
 }
 
+/* Elevation profile section */
+.elevation-section {
+	border: 1px solid #d1d5db;
+	border-radius: 6px;
+	padding: 0.75rem 1rem 0.5rem;
+	background: #fafafa;
+}
+
+.elevation-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 0.5rem;
+	padding: 0 0.5rem;
+}
+
+.elevation-title {
+	font-weight: 700;
+	font-size: 0.95rem;
+	color: #1e293b;
+}
+
+.elevation-badges {
+	display: flex;
+	gap: 0.4rem;
+}
+
+.badge {
+	font-size: 0.78rem;
+	font-weight: 600;
+	padding: 0.15rem 0.5rem;
+	border-radius: 999px;
+	white-space: nowrap;
+}
+
+.badge-ascent {
+	background: #dcfce7;
+	color: #15803d;
+	border: 1px solid #bbf7d0;
+}
+
+.badge-descent {
+	background: #fee2e2;
+	color: #b91c1c;
+	border: 1px solid #fecaca;
+}
+
+.chart-scroll-wrapper {
+	width: 100%;
+	overflow-x: auto;
+	overflow-y: hidden;
+	-webkit-overflow-scrolling: touch;
+}
+
+.elevation-chart {
+	display: block;
+	width: 100%;
+	min-width: 600px;
+	height: auto;
+	overflow: visible;
+}
+
+.grid-line {
+	stroke: #e2e8f0;
+	stroke-width: 0.8;
+}
+
+.elevation-area {
+	fill: url(#elevGrad);
+}
+
+.elevation-line {
+	fill: none;
+	stroke: #3b82f6;
+	stroke-width: 2;
+	stroke-linejoin: round;
+	stroke-linecap: round;
+}
+
+.axis-label {
+	font-size: 14px;
+	fill: #64748b;
+	font-family: inherit;
+}
+
+.y-label {
+	text-anchor: end;
+	dominant-baseline: central;
+}
+
+.x-label {
+	text-anchor: middle;
+	dominant-baseline: hanging;
+}
+
+.x-unit {
+	text-anchor: middle;
+	dominant-baseline: hanging;
+	font-weight: 600;
+	fill: #475569;
+}
+
+@media (max-width: 600px) {
+	.x-label-intermediate {
+		display: none;
+	}
+}
+
 @media (max-width: 768px) {
 	.tour-map {
 		height: 220px;

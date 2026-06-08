@@ -39,6 +39,75 @@
 			}
 		</div>
 
+		@if (elevationSvgData(); as svgData) {
+			<div class="elevation-section">
+				<div class="elevation-header">
+					<span class="elevation-title">Elevation Profile</span>
+					<div class="elevation-badges">
+						@if (ascentLabel()) {
+							<span class="badge badge-ascent">{{ ascentLabel() }}</span>
+						}
+						@if (descentLabel()) {
+							<span class="badge badge-descent">{{ descentLabel() }}</span>
+						}
+					</div>
+				</div>
+				<div class="chart-scroll-wrapper">
+					<svg
+						class="elevation-chart"
+						[attr.viewBox]="svgData.viewBox"
+						preserveAspectRatio="xMidYMid meet"
+						aria-label="Elevation profile chart"
+						role="img">
+						<defs>
+							<linearGradient id="elevGrad" x1="0" y1="0" x2="0" y2="1">
+								<stop offset="0%" stop-color="#3b82f6" stop-opacity="0.4"/>
+								<stop offset="100%" stop-color="#3b82f6" stop-opacity="0.04"/>
+							</linearGradient>
+						</defs>
+
+						<!-- Horizontal grid lines at y-axis label positions -->
+						@for (yl of svgData.yLabels; track yl.label) {
+							<line
+								[attr.x1]="svgData.padLeft"
+								[attr.y1]="yl.y"
+								[attr.x2]="svgData.padLeft + svgData.drawW"
+								[attr.y2]="yl.y"
+								class="grid-line"/>
+						}
+
+						<!-- Filled area under curve -->
+						<path [attr.d]="svgData.areaPath" class="elevation-area"/>
+
+						<!-- Elevation polyline -->
+						<polyline [attr.points]="svgData.polyPoints" class="elevation-line"/>
+
+						<!-- Y-axis labels (elevation) -->
+						@for (yl of svgData.yLabels; track yl.label) {
+							<text
+								[attr.x]="svgData.padLeft - 8"
+								[attr.y]="yl.y"
+								class="axis-label y-label">{{ yl.label }}</text>
+						}
+
+						<!-- X-axis labels (distance km) -->
+						@for (xl of svgData.xLabels; track xl.label) {
+							<text
+								[attr.x]="xl.x"
+								[attr.y]="svgData.padTop + svgData.drawH + 16"
+								class="axis-label x-label">{{ xl.label }}</text>
+						}
+
+						<!-- X-axis unit label (centered below axis) -->
+						<text 
+							[attr.x]="svgData.padLeft + (svgData.drawW / 2)" 
+							[attr.y]="svgData.padTop + svgData.drawH + 36" 
+							class="axis-label x-unit">Distance (km)</text>
+					</svg>
+				</div>
+			</div>
+		}
+
 		<app-tour-log-list
 			[tourId]="tour()!.id"
 			[logs]="logs()"
