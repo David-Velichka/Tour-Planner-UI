@@ -76,11 +76,27 @@
 								class="grid-line"/>
 						}
 
+						<!-- Solid axis lines to ground chart visually -->
+						<line
+							[attr.x1]="svgData.padLeft"
+							[attr.y1]="svgData.padTop"
+							[attr.x2]="svgData.padLeft"
+							[attr.y2]="svgData.padTop + svgData.drawH"
+							stroke="#cbd5e1"
+							stroke-width="1"/>
+						<line
+							[attr.x1]="svgData.padLeft"
+							[attr.y1]="svgData.padTop + svgData.drawH"
+							[attr.x2]="svgData.padLeft + svgData.drawW"
+							[attr.y2]="svgData.padTop + svgData.drawH"
+							stroke="#cbd5e1"
+							stroke-width="1"/>
+
 						<!-- Filled area under curve -->
 						<path [attr.d]="svgData.areaPath" class="elevation-area"/>
 
-						<!-- Elevation polyline -->
-						<polyline [attr.points]="svgData.polyPoints" class="elevation-line"/>
+						<!-- Elevation line path -->
+						<path [attr.d]="svgData.linePath" class="elevation-line"/>
 
 						<!-- Y-axis labels (elevation) -->
 						@for (yl of svgData.yLabels; track yl.label) {

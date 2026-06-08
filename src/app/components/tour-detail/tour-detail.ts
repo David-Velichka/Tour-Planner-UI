@@ -55,11 +55,11 @@ export class TourDetail {
     try {
       const coords = JSON.parse(profile) as [number, number, number][];
       if (coords.length < 2) return [];
-      const points: { distKm: number; elevM: number }[] = [{ distKm: 0, elevM: coords[0][2] }];
+      const points: { distKm: number; elevM: number }[] = [{ distKm: 0, elevM: coords[0][2] ?? 0 }];
       let cumDist = 0;
       for (let i = 1; i < coords.length; i++) {
         cumDist += haversineKm(coords[i - 1][1], coords[i - 1][0], coords[i][1], coords[i][0]);
-        points.push({ distKm: cumDist, elevM: coords[i][2] });
+        points.push({ distKm: cumDist, elevM: coords[i][2] ?? 0 });
       }
       return points;
     } catch {
@@ -105,15 +105,15 @@ export class TourDetail {
     minElev = Math.floor(minElev / rounding) * rounding;
     maxElev = Math.ceil(maxElev / rounding) * rounding;
 
-    const elevRange = maxElev - minElev;
-    const totalDist = pts[pts.length - 1].distKm;
+    const elevRange = (maxElev - minElev) || 100;
+    const totalDist = pts[pts.length - 1].distKm || 1.0;
 
     // Map a point to SVG coordinates
     const toX = (distKm: number) => padLeft + (distKm / totalDist) * drawW;
     const toY = (elevM: number) => padTop + drawH - ((elevM - minElev) / elevRange) * drawH;
 
-    // Build polyline points string
-    const polyPoints = pts.map(p => `${toX(p.distKm).toFixed(1)},${toY(p.elevM).toFixed(1)}`).join(' ');
+    // Build line path (instead of polyline points string)
+    const linePath = 'M ' + pts.map(p => `${toX(p.distKm).toFixed(1)},${toY(p.elevM).toFixed(1)}`).join(' L ');
 
     // Build filled area path (polyline + close to baseline)
     const first = pts[0];
@@ -143,7 +143,7 @@ export class TourDetail {
       });
     }
 
-    return { polyPoints, areaPath, yLabels, xLabels, baselineY: baseY, padLeft, padTop, drawW, drawH, viewBox: `0 0 ${W} ${H}` };
+    return { linePath, areaPath, yLabels, xLabels, baselineY: baseY, padLeft, padTop, drawW, drawH, viewBox: `0 0 ${W} ${H}` };
   });
 
 
