@@ -100,7 +100,7 @@ export class MainShell {
       const currentSelected = this.selectedTour();
       if (currentSelected) {
         const updated = loadedTours.find((t) => t.id === currentSelected.id);
-        this.selectedTour.set(updated ?? undefined);
+        this.selectedTour.set(updated);
       }
     } catch (error) {
       this.apiError.set(this.extractErrorMessage(error, 'Failed to load tours.'));
