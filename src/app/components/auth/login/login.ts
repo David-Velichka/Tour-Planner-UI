@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
@@ -18,11 +18,9 @@ export class Login {
     password: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
   });
 
-  errorMessage = '';
+  readonly errorMessage = signal('');
 
   async onLogin(): Promise<void> {
-    this.errorMessage = '';
-
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
       return;
@@ -36,7 +34,7 @@ export class Login {
       return;
     }
 
-    this.errorMessage = errorMessage;
+    this.errorMessage.set(errorMessage);
   }
  
   goToRegister(): void {

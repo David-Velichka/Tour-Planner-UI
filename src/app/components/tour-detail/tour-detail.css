@@ -139,8 +139,7 @@
 .elevation-chart {
 	display: block;
 	width: 100%;
-	min-width: 600px;
-	height: auto;
+	height: 230px;
 	overflow: visible;
 }
 

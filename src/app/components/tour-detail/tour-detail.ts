@@ -32,6 +32,7 @@ import { AuthService } from '../../services/auth.service';
 export class TourDetail {
   private readonly destroyRef = inject(DestroyRef);
   private readonly mapElementRef = viewChild<ElementRef<HTMLDivElement>>('leafletMap');
+  private readonly chartWrapperRef = viewChild<ElementRef<HTMLDivElement>>('chartWrapper');
   private readonly tourService = inject(TourService);
   private readonly authService = inject(AuthService);
   private readonly sanitizer = inject(DomSanitizer);
@@ -47,6 +48,7 @@ export class TourDetail {
   readonly logEditRequested = output<TourLog>();
   readonly logDeleteRequested = output<TourLog>();
   readonly mapError = signal<string | undefined>(undefined);
+  readonly chartWidth = signal(800);
 
   // Parsed elevation profile: array of {distKm, elevM} for SVG chart
   readonly elevationPoints = computed(() => {
@@ -82,8 +84,8 @@ export class TourDetail {
     const pts = this.elevationPoints();
     if (pts.length < 2) return null;
 
-    const W = 1000; // SVG viewBox width
-    const H = 230;  // SVG viewBox height
+    const W = Math.max(this.chartWidth(), 300);
+    const H = 230;
     const padLeft = 64;  // Space for Y labels
     const padBottom = 56; // Space for X labels and unit title
     const padTop = 16;
@@ -186,6 +188,19 @@ export class TourDetail {
       } else {
         this.imageBlobUrl.set(undefined);
       }
+    });
+
+    // Track chart container width so the viewBox maps 1:1 to CSS pixels
+    effect((onCleanup) => {
+      const el = this.chartWrapperRef()?.nativeElement;
+      if (!el) return;
+
+      const observer = new ResizeObserver(entries => {
+        const w = entries[0]?.contentRect.width;
+        if (w && w > 0) this.chartWidth.set(Math.round(w));
+      });
+      observer.observe(el);
+      onCleanup(() => observer.disconnect());
     });
 
     effect(() => {
