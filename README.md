@@ -4,7 +4,7 @@ Frontend for the Tour Planner application. Built with Angular (standalone compon
 
 ## Tech Stack
 
-- Angular 19
+- Angular 21
 - Leaflet (map rendering)
 - Signals for state management (`MainShell` acts as the ViewModel)
 
