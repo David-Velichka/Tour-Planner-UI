@@ -40,62 +40,74 @@
       <p class="api-error">{{ apiError() }}</p>
     }
     @if (showCreateTourForm()) {
-      <section class="form-section">
-        <app-tour-form
-          (tourSaved)="onTourSaved($event)"
-          (cancelled)="onCreateCancelled()"></app-tour-form>
-      </section>
+      <div class="modal-overlay">
+        <section class="form-section modal-content">
+          <app-tour-form
+            (tourSaved)="onTourSaved($event)"
+            (cancelled)="onCreateCancelled()"></app-tour-form>
+        </section>
+      </div>
     }
 
     @if (editingTour()) {
-      <section class="form-section">
-        <app-tour-form
-          [tour]="editingTour()"
-          (tourSaved)="onEditTourSaved($event)"
-          (cancelled)="onEditCancelled()"></app-tour-form>
-      </section>
+      <div class="modal-overlay">
+        <section class="form-section modal-content">
+          <app-tour-form
+            [tour]="editingTour()"
+            (tourSaved)="onEditTourSaved($event)"
+            (cancelled)="onEditCancelled()"></app-tour-form>
+        </section>
+      </div>
     }
 
     @if (tourToDelete()) {
-      <section class="form-section delete-confirmation" role="alertdialog" aria-modal="true" aria-labelledby="delete-tour-title">
-        <h3 id="delete-tour-title">Delete Tour</h3>
-        <p>Are you sure you want to delete "{{ tourToDelete()!.name }}"?</p>
-        <div class="delete-actions">
-          <button type="button" class="danger" (click)="confirmDeleteTour()">Delete</button>
-          <button type="button" (click)="cancelDeleteTour()">Cancel</button>
-        </div>
-      </section>
+      <div class="modal-overlay">
+        <section class="form-section modal-content delete-confirmation" role="alertdialog" aria-modal="true" aria-labelledby="delete-tour-title">
+          <h3 id="delete-tour-title">Delete Tour</h3>
+          <p>Are you sure you want to delete "{{ tourToDelete()!.name }}"?</p>
+          <div class="delete-actions">
+            <button type="button" class="danger" (click)="confirmDeleteTour()">Delete</button>
+            <button type="button" (click)="cancelDeleteTour()">Cancel</button>
+          </div>
+        </section>
+      </div>
     }
 
     @if (showCreateTourLogForm()) {
-      <section class="form-section">
-        <app-tour-log-form
-          [log]="undefined"
-          [tourId]="selectedTour()?.id"
-          (logSaved)="onTourLogSaved($event)"
-          (cancelled)="onCreateTourLogCancelled()"></app-tour-log-form>
-      </section>
+      <div class="modal-overlay">
+        <section class="form-section modal-content">
+          <app-tour-log-form
+            [log]="undefined"
+            [tourId]="selectedTour()?.id"
+            (logSaved)="onTourLogSaved($event)"
+            (cancelled)="onCreateTourLogCancelled()"></app-tour-log-form>
+        </section>
+      </div>
     }
 
     @if (editingTourLog()) {
-      <section class="form-section">
-        <app-tour-log-form
-          [log]="editingTourLog()"
-          [tourId]="selectedTour()?.id"
-          (logSaved)="onEditTourLogSaved($event)"
-          (cancelled)="onEditTourLogCancelled()"></app-tour-log-form>
-      </section>
+      <div class="modal-overlay">
+        <section class="form-section modal-content">
+          <app-tour-log-form
+            [log]="editingTourLog()"
+            [tourId]="selectedTour()?.id"
+            (logSaved)="onEditTourLogSaved($event)"
+            (cancelled)="onEditTourLogCancelled()"></app-tour-log-form>
+        </section>
+      </div>
     }
 
     @if (tourLogToDelete()) {
-      <section class="form-section delete-confirmation" role="alertdialog" aria-modal="true" aria-labelledby="delete-log-title">
-        <h3 id="delete-log-title">Delete Tour Log</h3>
-        <p>Are you sure you want to delete the log from "{{ tourLogToDelete()!.loggedAt }}"?</p>
-        <div class="delete-actions">
-          <button type="button" class="danger" (click)="confirmDeleteTourLog()">Delete</button>
-          <button type="button" (click)="cancelDeleteTourLog()">Cancel</button>
-        </div>
-      </section>
+      <div class="modal-overlay">
+        <section class="form-section modal-content delete-confirmation" role="alertdialog" aria-modal="true" aria-labelledby="delete-log-title">
+          <h3 id="delete-log-title">Delete Tour Log</h3>
+          <p>Are you sure you want to delete the log from "{{ tourLogToDelete()!.loggedAt }}"?</p>
+          <div class="delete-actions">
+            <button type="button" class="danger" (click)="confirmDeleteTourLog()">Delete</button>
+            <button type="button" (click)="cancelDeleteTourLog()">Cancel</button>
+          </div>
+        </section>
+      </div>
     }
 
     <app-tour-detail

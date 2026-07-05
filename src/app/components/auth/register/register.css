@@ -44,6 +44,12 @@ input {
   color: #b00020;
 }
 
+.success-message {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #0b8a00;
+}
+
 .actions {
   display: flex;
   gap: 10px;

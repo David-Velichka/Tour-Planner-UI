@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
@@ -33,16 +33,18 @@ export class Register {
     { validators: [passwordMatchValidator] }
   );
 
-  errorMessage = '';
+  readonly errorMessage = signal('');
+  readonly successMessage = signal('');
 
   async onRegister(): Promise<void> {
-    this.errorMessage = '';
+    this.errorMessage.set('');
+    this.successMessage.set('');
 
     if (this.registerForm.invalid) {
       this.registerForm.markAllAsTouched();
 
       if (this.registerForm.hasError('passwordMismatch')) {
-        this.errorMessage = 'Password and confirm password must match.';
+        this.errorMessage.set('Password and confirm password must match.');
       }
 
       return;
@@ -52,11 +54,12 @@ export class Register {
     const errorMessage = await this.authService.register(username, password);
 
     if (!errorMessage) {
-      this.router.navigate(['/login']);
+      this.successMessage.set('Account successfully registered! Redirecting...');
+      setTimeout(() => this.router.navigate(['/login']), 1500);
       return;
     }
 
-    this.errorMessage = errorMessage;
+    this.errorMessage.set(errorMessage);
   }
 
   goToLogin(): void {

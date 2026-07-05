@@ -59,6 +59,23 @@
   margin-bottom: 1rem;
 }
 
+/* Overlay that displays create/edit/delete windows as a floating dialog over the whole page */
+.modal-overlay {
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  position: fixed;
+  z-index: 1000;
+}
+
+.modal-content {
+  margin-bottom: 0;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
 .delete-confirmation {
   background-color: #fff5f5;
   border: 1px solid #f2b6b6;

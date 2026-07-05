@@ -31,8 +31,12 @@
         <p class="validation-message">Password and confirm password must match.</p>
       }
 
-      @if (errorMessage) {
-        <p class="error-message">{{ errorMessage }}</p>
+      @if (errorMessage()) {
+        <p class="error-message">{{ errorMessage() }}</p>
+      }
+
+      @if (successMessage()) {
+        <p class="success-message">{{ successMessage() }}</p>
       }
 
       <div class="actions">
