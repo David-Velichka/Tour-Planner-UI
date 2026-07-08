@@ -15,7 +15,12 @@
         <label for="password">password</label>
         <input id="password" type="password" formControlName="password" />
         @if (registerForm.controls.password.touched && registerForm.controls.password.invalid) {
-          <p class="validation-message">Password is required.</p>
+          @if (registerForm.controls.password.hasError('required')) {
+            <p class="validation-message">Password is required.</p>
+          }
+          @if (registerForm.controls.password.hasError('pattern')) {
+            <p class="validation-message">Password must be at least 8 characters long, contain at least one uppercase letter and one number.</p>
+          }
         }
       </div>
 

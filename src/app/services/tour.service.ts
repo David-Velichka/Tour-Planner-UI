@@ -2,6 +2,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { Tour, TransportType } from '../models/tour.model';
+import { AuthService } from './auth.service';
 
 // Data sent from the tour form to create or update a tour.
 // distanceKm and estimatedTimeMin are computed by the backend (ORS), not entered by the user.
@@ -60,10 +61,12 @@ export interface TourExportDto {
 @Injectable({ providedIn: 'root' })
 export class TourService {
   private readonly http = inject(HttpClient);
+  private readonly authService = inject(AuthService);
   private readonly baseUrl = 'http://localhost:8080/api/tours';
 
-  private headers(userId: number): HttpHeaders {
-    return new HttpHeaders({ 'X-User-Id': userId.toString() });
+  private headers(): HttpHeaders {
+    const token = this.authService.currentToken();
+    return new HttpHeaders({ 'Authorization': `Bearer ${token}` });
   }
 
   private mapTour(dto: TourApiResponse): Tour {
@@ -86,75 +89,75 @@ export class TourService {
     };
   }
 
-  async getTours(userId: number): Promise<Tour[]> {
+  async getTours(): Promise<Tour[]> {
     const response = await firstValueFrom(
-      this.http.get<TourListApiResponse>(this.baseUrl, { headers: this.headers(userId) })
+      this.http.get<TourListApiResponse>(this.baseUrl, { headers: this.headers() })
     );
     return response.tours.map((t) => this.mapTour(t));
   }
 
-  async createTour(userId: number, data: TourFormData): Promise<Tour> {
+  async createTour(data: TourFormData): Promise<Tour> {
     const dto = await firstValueFrom(
-      this.http.post<TourApiResponse>(this.baseUrl, data, { headers: this.headers(userId) })
+      this.http.post<TourApiResponse>(this.baseUrl, data, { headers: this.headers() })
     );
     return this.mapTour(dto);
   }
 
-  async updateTour(userId: number, id: number, data: TourFormData): Promise<Tour> {
+  async updateTour(id: number, data: TourFormData): Promise<Tour> {
     const dto = await firstValueFrom(
       this.http.put<TourApiResponse>(`${this.baseUrl}/${id}`, data, {
-        headers: this.headers(userId),
+        headers: this.headers(),
       })
     );
     return this.mapTour(dto);
   }
 
-  async deleteTour(userId: number, id: number): Promise<void> {
+  async deleteTour(id: number): Promise<void> {
     await firstValueFrom(
-      this.http.delete<void>(`${this.baseUrl}/${id}`, { headers: this.headers(userId) })
+      this.http.delete<void>(`${this.baseUrl}/${id}`, { headers: this.headers() })
     );
   }
 
-  async searchTours(userId: number, query: string): Promise<Tour[]> {
+  async searchTours(query: string): Promise<Tour[]> {
     const response = await firstValueFrom(
       this.http.get<{ tours: TourApiResponse[] }>(`${this.baseUrl}/search`, {
-        headers: this.headers(userId),
+        headers: this.headers(),
         params: { q: query },
       })
     );
     return response.tours.map((t) => this.mapTour(t));
   }
 
-  async exportTours(userId: number): Promise<Blob> {
+  async exportTours(): Promise<Blob> {
     return firstValueFrom(
       this.http.get('http://localhost:8080/api/export', {
-        headers: this.headers(userId),
+        headers: this.headers(),
         responseType: 'blob',
       })
     );
   }
 
-  async importTours(userId: number, data: TourExportDto[]): Promise<void> {
+  async importTours(data: TourExportDto[]): Promise<void> {
     await firstValueFrom(
-      this.http.post<void>('http://localhost:8080/api/import', { tours: data }, { headers: this.headers(userId) })
+      this.http.post<void>('http://localhost:8080/api/import', { tours: data }, { headers: this.headers() })
     );
   }
 
-  async uploadImage(userId: number, file: File): Promise<string> {
+  async uploadImage(file: File): Promise<string> {
     const formData = new FormData();
     formData.append('file', file);
     const response = await firstValueFrom(
       this.http.post<{ filename: string }>('http://localhost:8080/api/images', formData, {
-        headers: this.headers(userId),
+        headers: this.headers(),
       })
     );
     return response.filename;
   }
 
-  async getImageBlob(userId: number, imageFilePath: string): Promise<Blob> {
+  async getImageBlob(imageFilePath: string): Promise<Blob> {
     return firstValueFrom(
       this.http.get(`http://localhost:8080/api/images/${imageFilePath.replace(/^\/+/, '')}`, {
-        headers: this.headers(userId),
+        headers: this.headers(),
         responseType: 'blob',
       })
     );

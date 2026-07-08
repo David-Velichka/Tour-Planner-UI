@@ -87,10 +87,13 @@
       <input
         id="tour-image"
         type="file"
-        accept="image/*"
+        accept=".jpeg,.jpg,.png,.webp,image/jpeg,image/png,image/webp"
         (change)="onImageSelected($event)"
       />
-      <p class="image-preview">
+      <small class="hint" style="display: block; font-size: 0.8em; color: #666; margin-top: 4px;">
+        Only JPEG, JPG, PNG, and WebP formats are allowed.
+      </small>
+      <p class="image-preview" style="margin-top: 8px;">
         @if (selectedImageName()) {
           {{ selectedImageName() }}
         } @else {

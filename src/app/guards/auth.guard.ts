@@ -12,3 +12,14 @@ export const authGuard: CanActivateFn = () => {
 
   return router.parseUrl('/login');
 };
+
+export const guestGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  if (!authService.isLoggedIn()) {
+    return true;
+  }
+
+  return router.parseUrl('/app');
+};

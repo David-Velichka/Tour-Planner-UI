@@ -18,7 +18,6 @@ import { TourLogList } from '../tour-log-list/tour-log-list';
 import { AttributeField } from '../shared/attribute-field/attribute-field';
 
 import { TourService } from '../../services/tour.service';
-import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-tour-detail',
@@ -34,7 +33,6 @@ export class TourDetail {
   private readonly mapElementRef = viewChild<ElementRef<HTMLDivElement>>('leafletMap');
   private readonly chartWrapperRef = viewChild<ElementRef<HTMLDivElement>>('chartWrapper');
   private readonly tourService = inject(TourService);
-  private readonly authService = inject(AuthService);
   private readonly sanitizer = inject(DomSanitizer);
 
   private map: L.Map | undefined;
@@ -165,26 +163,23 @@ export class TourDetail {
       const currentTour = this.tour();
       const imageFilePath = currentTour?.imageFilePath?.trim();
       
-      if (imageFilePath && !imageFilePath.startsWith('http') && !imageFilePath.startsWith('blob:') && !imageFilePath.startsWith('data:')) {
-        const userId = this.authService.currentUserId();
-        if (userId) {
-          let objectUrl: string | undefined = undefined;
-          let isCleanedUp = false;
-          
-          this.tourService.getImageBlob(userId, imageFilePath).then(blob => {
-            if (isCleanedUp) return;
-            objectUrl = URL.createObjectURL(blob);
-            this.imageBlobUrl.set(this.sanitizer.bypassSecurityTrustUrl(objectUrl));
-          }).catch(err => console.error('Failed to load image blob', err));
+    if (imageFilePath && !imageFilePath.startsWith('http') && !imageFilePath.startsWith('blob:') && !imageFilePath.startsWith('data:')) {
+        let objectUrl: string | undefined = undefined;
+        let isCleanedUp = false;
 
-          onCleanup(() => {
-            isCleanedUp = true;
-            if (objectUrl) {
-              URL.revokeObjectURL(objectUrl);
-            }
-            this.imageBlobUrl.set(undefined);
-          });
-        }
+        this.tourService.getImageBlob(imageFilePath).then(blob => {
+          if (isCleanedUp) return;
+          objectUrl = URL.createObjectURL(blob);
+          this.imageBlobUrl.set(this.sanitizer.bypassSecurityTrustUrl(objectUrl));
+        }).catch(err => console.error('Failed to load image blob', err));
+
+        onCleanup(() => {
+          isCleanedUp = true;
+          if (objectUrl) {
+            URL.revokeObjectURL(objectUrl);
+          }
+          this.imageBlobUrl.set(undefined);
+        });
       } else {
         this.imageBlobUrl.set(undefined);
       }

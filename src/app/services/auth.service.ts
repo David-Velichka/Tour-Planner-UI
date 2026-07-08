@@ -2,8 +2,8 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
-type AuthResponse = {
-  userId: number;
+type AuthUser = {
+  token: string;
   username: string;
 };
 
@@ -15,7 +15,7 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly authBaseUrl = 'http://localhost:8080/api/auth';
   // Initialize from localStorage so state survives page reload and tab duplication
-  private readonly currentUser = signal<AuthResponse | undefined>(this.loadFromStorage());
+  private readonly currentUser = signal<AuthUser | undefined>(this.loadFromStorage());
 
   private readonly loggedIn = computed(() => this.currentUser() !== undefined);
 
@@ -37,7 +37,7 @@ export class AuthService {
 
     try {
       await firstValueFrom(
-        this.http.post<AuthResponse>(`${this.authBaseUrl}/register`, {
+        this.http.post<AuthUser>(`${this.authBaseUrl}/register`, {
           username: normalizedUsername,
           password,
         })
@@ -57,7 +57,7 @@ export class AuthService {
 
     try {
       const response = await firstValueFrom(
-        this.http.post<AuthResponse>(`${this.authBaseUrl}/login`, {
+        this.http.post<AuthUser>(`${this.authBaseUrl}/login`, {
           username: normalizedUsername,
           password,
         })
@@ -83,26 +83,48 @@ export class AuthService {
     return this.currentUser()?.username;
   }
 
-  currentUserId(): number | undefined {
-    return this.currentUser()?.userId;
+  currentToken(): string | undefined {
+    return this.currentUser()?.token;
   }
 
-  private loadFromStorage(): AuthResponse | undefined {
+  private loadFromStorage(): AuthUser | undefined {
     const stored = localStorage.getItem(this.STORAGE_KEY);
-    return stored ? this.parseUser(stored) : undefined;
+    if (!stored) return undefined;
+
+    const user = this.parseUser(stored);
+    if (!user) return undefined;
+
+    // Auto-logout if the stored token is already expired
+    if (this.isTokenExpired(user.token)) {
+      localStorage.removeItem(this.STORAGE_KEY);
+      return undefined;
+    }
+
+    return user;
   }
 
   // Validates shape to avoid accepting malformed or tampered storage data
-  private parseUser(json: string): AuthResponse | undefined {
+  private parseUser(json: string): AuthUser | undefined {
     try {
       const parsed = JSON.parse(json);
-      if (typeof parsed.userId === 'number' && typeof parsed.username === 'string') {
-        return { userId: parsed.userId, username: parsed.username };
+      if (typeof parsed.token === 'string' && parsed.token.trim() &&
+          typeof parsed.username === 'string') {
+        return { token: parsed.token, username: parsed.username };
       }
     } catch {
       // ignore invalid JSON
     }
     return undefined;
+  }
+
+  /** Decode JWT payload (base64) and check exp claim vs current time. */
+  private isTokenExpired(token: string): boolean {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return typeof payload.exp === 'number' && Date.now() >= payload.exp * 1000;
+    } catch {
+      return true; // treat unreadable token as expired
+    }
   }
 
   private readErrorMessage(error: unknown): string | null {

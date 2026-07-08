@@ -27,7 +27,7 @@ export class Register {
   readonly registerForm = new FormGroup(
     {
       username: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      password: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+      password: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.pattern(/^(?=.*[A-Z])(?=.*\d).{8,}$/)] }),
       confirmPassword: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     },
     { validators: [passwordMatchValidator] }

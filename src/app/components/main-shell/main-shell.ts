@@ -60,15 +60,11 @@ export class MainShell {
     });
   }
 
-  private getUserId(): number {
-    const userId = this.authService.currentUserId();
-
-    if (!userId) {
+  private ensureLoggedIn(): void {
+    if (!this.authService.isLoggedIn()) {
       void this.router.navigate(['/login']);
       throw new Error('Not authenticated');
     }
-
-    return userId;
   }
 
   // Extract a user-friendly message from an HTTP error response.
@@ -87,8 +83,8 @@ export class MainShell {
 
   private async loadTours(): Promise<void> {
     try {
-      const userId = this.getUserId();
-      const loadedTours = await this.tourService.getTours(userId);
+      this.ensureLoggedIn();
+      const loadedTours = await this.tourService.getTours();
       this.tours.set(loadedTours);
       // Sync filtered list unless a search is active
       if (!this.searchTerm().trim()) {
@@ -109,8 +105,8 @@ export class MainShell {
 
   private async runSearch(query: string): Promise<void> {
     try {
-      const userId = this.getUserId();
-      const results = await this.tourService.searchTours(userId, query);
+      this.ensureLoggedIn();
+      const results = await this.tourService.searchTours(query);
       this.filteredTours.set(results);
     } catch {
       // On search error, fall back to full list
@@ -137,8 +133,8 @@ export class MainShell {
     this.apiError.set(undefined);
 
     try {
-      const userId = this.getUserId();
-      const logs = await this.tourLogService.getLogs(userId, tour.id);
+      this.ensureLoggedIn();
+      const logs = await this.tourLogService.getLogs(tour.id);
       this.tourLogs.set(logs);
     } catch {
       this.tourLogs.set([]);
@@ -165,11 +161,11 @@ export class MainShell {
 
   private async createTour(data: TourFormData): Promise<void> {
     try {
-      const userId = this.getUserId();
+      this.ensureLoggedIn();
       if (data.imageFile) {
-        data.imageFilePath = await this.tourService.uploadImage(userId, data.imageFile);
+        data.imageFilePath = await this.tourService.uploadImage(data.imageFile);
       }
-      const createdTour = await this.tourService.createTour(userId, data);
+      const createdTour = await this.tourService.createTour(data);
       this.tours.update((currentTours) => [...currentTours, createdTour]);
       this.selectedTour.set(createdTour);
       this.tourLogs.set([]);
@@ -209,11 +205,11 @@ export class MainShell {
     }
 
     try {
-      const userId = this.getUserId();
+      this.ensureLoggedIn();
       if (data.imageFile) {
-        data.imageFilePath = await this.tourService.uploadImage(userId, data.imageFile);
+        data.imageFilePath = await this.tourService.uploadImage(data.imageFile);
       }
-      const updatedTour = await this.tourService.updateTour(userId, tourBeingEdited.id, data);
+      const updatedTour = await this.tourService.updateTour(tourBeingEdited.id, data);
       this.tours.update((currentTours) =>
         currentTours.map((t) => (t.id === updatedTour.id ? updatedTour : t))
       );
@@ -258,8 +254,8 @@ export class MainShell {
     }
 
     try {
-      const userId = this.getUserId();
-      await this.tourService.deleteTour(userId, pendingDeleteTour.id);
+      this.ensureLoggedIn();
+      await this.tourService.deleteTour(pendingDeleteTour.id);
       this.tours.update((currentTours) =>
         currentTours.filter((t) => t.id !== pendingDeleteTour.id)
       );
@@ -311,8 +307,8 @@ export class MainShell {
     }
 
     try {
-      const userId = this.getUserId();
-      const createdLog = await this.tourLogService.createLog(userId, currentSelectedTour.id, data);
+      this.ensureLoggedIn();
+      const createdLog = await this.tourLogService.createLog(currentSelectedTour.id, data);
       this.tourLogs.update((currentLogs) => [...currentLogs, createdLog]);
       await this.loadTours();
       this.showCreateTourLogForm.set(false);
@@ -354,8 +350,8 @@ export class MainShell {
     }
 
     try {
-      const userId = this.getUserId();
-      const updatedLog = await this.tourLogService.updateLog(userId, logBeingEdited.id, data);
+      this.ensureLoggedIn();
+      const updatedLog = await this.tourLogService.updateLog(logBeingEdited.id, data);
       this.tourLogs.update((currentLogs) =>
         currentLogs.map((l) => (l.id === updatedLog.id ? updatedLog : l))
       );
@@ -399,8 +395,8 @@ export class MainShell {
     }
 
     try {
-      const userId = this.getUserId();
-      await this.tourLogService.deleteLog(userId, pendingDeleteLog.id);
+      this.ensureLoggedIn();
+      await this.tourLogService.deleteLog(pendingDeleteLog.id);
       this.tourLogs.update((currentLogs) =>
         currentLogs.filter((l) => l.id !== pendingDeleteLog.id)
       );
@@ -423,8 +419,8 @@ export class MainShell {
 
   async onExport(): Promise<void> {
     try {
-      const userId = this.getUserId();
-      const blob = await this.tourService.exportTours(userId);
+      this.ensureLoggedIn();
+      const blob = await this.tourService.exportTours();
       const downloadUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = downloadUrl;
@@ -456,8 +452,8 @@ export class MainShell {
       if (!importData.tours || !Array.isArray(importData.tours)) {
         throw new Error('Invalid export format');
       }
-      const userId = this.getUserId();
-      await this.tourService.importTours(userId, importData.tours);
+      this.ensureLoggedIn();
+      await this.tourService.importTours(importData.tours);
       await this.loadTours();
       window.alert('Import completed successfully.');
     } catch (error) {

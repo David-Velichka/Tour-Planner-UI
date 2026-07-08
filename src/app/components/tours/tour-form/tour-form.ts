@@ -120,6 +120,19 @@ export class TourForm {
     const selectedFile = fileInput?.files?.item(0);
 
     if (selectedFile) {
+      const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      const validExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
+      const lowerFileName = selectedFile.name.trim().toLowerCase();
+      const hasValidExtension = validExtensions.some(ext => lowerFileName.endsWith(ext));
+
+      if (!validTypes.includes(selectedFile.type) || !hasValidExtension) {
+        alert('Invalid file format. Only JPEG, PNG, and WebP are allowed.');
+        if (fileInput) fileInput.value = '';
+        this.tourForm.controls.imageFile.setValue(null);
+        this.selectedImageName.set(this.getExistingImageName(this.tour()));
+        return;
+      }
+
       const fileName = selectedFile.name.trim();
       this.tourForm.controls.imageFile.setValue(selectedFile);
       this.selectedImageName.set(fileName);
